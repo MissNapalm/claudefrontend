@@ -227,16 +227,45 @@ class Handler(BaseHTTPRequestHandler):
             body = self._read_json()
             if not isinstance(body, dict):
                 return self._send(400, {"error": "invalid body"})
+            # Sanitize fields: a real cred has no whitespace, no JSON escape
+            # leakage, no embedded newlines. Truncate at the first such char.
+            def clean(v):
+                v = str(v or "")
+                # cut at first whitespace, literal "\n", quote, or NUL
+                for sep in ("\n", "\r", "\t", " ", "\\n", '"'):
+                    i = v.find(sep)
+                    if i >= 0:
+                        v = v[:i]
+                return v.strip()
             cred = {
                 "service":  str(body.get("service", "") or ""),
                 "host":     str(body.get("host", "") or ""),
-                "username": str(body.get("username", "") or ""),
-                "password": str(body.get("password", "") or ""),
+                "username": clean(body.get("username", "")),
+                "password": clean(body.get("password", "")),
                 "source":   str(body.get("source", "manual") or "manual"),
                 "notes":    str(body.get("notes", "") or ""),
                 "ts":       time.time(),
             }
+            # Reject obviously broken hits
+            if not cred["username"] or not cred["password"]:
+                return self._send(400, {"error": "username/password required"})
+            if len(cred["password"]) > 80 or len(cred["username"]) > 80:
+                return self._send(400, {"error": "field too long; likely a parser garble"})
+
             creds = load_creds()
+            # Dedupe on (username, password) — same secret = same fact,
+            # regardless of which tool tagged the service string.
+            key = (cred["username"].lower(), cred["password"])
+            for existing in creds:
+                ek = (str(existing.get("username","")).strip().lower(),
+                      str(existing.get("password","")).strip())
+                if ek == key and key != ("",""):
+                    # merge: keep earliest entry but enrich missing fields
+                    for f in ("service","host","source","notes"):
+                        if not existing.get(f) and cred.get(f):
+                            existing[f] = cred[f]
+                    save_creds(creds)
+                    return self._send(200, {"ok": True, "count": len(creds), "deduped": True})
             creds.append(cred)
             save_creds(creds)
             return self._send(200, {"ok": True, "count": len(creds)})
@@ -251,6 +280,38 @@ class Handler(BaseHTTPRequestHandler):
             except Exception as e:
                 return self._send(500, {"error": str(e)})
             return self._send(200, {"ok": True})
+
+        if p == "/api/creds-dedupe":
+            creds = load_creds()
+            # Clean garbled passwords/usernames in-place first.
+            def clean(v):
+                v = str(v or "")
+                for sep in ("\n", "\r", "\t", " ", "\\n", '"'):
+                    i = v.find(sep)
+                    if i >= 0:
+                        v = v[:i]
+                return v.strip()
+            for c in creds:
+                c["username"] = clean(c.get("username",""))
+                c["password"] = clean(c.get("password",""))
+            # Drop entries with empty user or password after cleaning.
+            creds = [c for c in creds if c.get("username") and c.get("password")]
+            # Now dedupe on (username, password), keeping first occurrence + merging fields.
+            new_list = []
+            seen = {}
+            for c in creds:
+                k = (c["username"].lower(), c["password"])
+                if k in seen:
+                    earliest = seen[k]
+                    for f in ("service","host","source","notes"):
+                        if not earliest.get(f) and c.get(f):
+                            earliest[f] = c[f]
+                    continue
+                seen[k] = c
+                new_list.append(c)
+            before = len(load_creds())
+            save_creds(new_list)
+            return self._send(200, {"ok": True, "before": before, "after": len(new_list), "removed": before - len(new_list)})
 
         if p == "/api/focus-terminal":
             try:

@@ -85,6 +85,166 @@
   }
   @keyframes scan { from { background-position:0 0 } to { background-position:0 100vh } }
 
+  /* ---------- PRO THEME (light, Burp-style) ---------- */
+  body[data-theme="pro"] {
+    --bg:       #d8d6d2;   /* warm mid-light gray — the page */
+    --bg-2:     #e4e2de;   /* panels (topbar, footer, pane heads, cards) */
+    --bg-3:     #ccc9c3;   /* recessed surfaces (selects, input bg, svc body) */
+    --fg:       #1f1d1b;
+    --fg-dim:   #6a655e;
+    --accent:   #c4501a;   /* burp orange, slightly desaturated for the warmer ground */
+    --accent-2: #1e40af;
+    --good:     #166534;
+    --bad:      #991b1b;
+    --warn:     #92400e;
+    --info:     #1e40af;
+    --line:     #b4b0a8;
+    --line-2:   #a09b92;
+    --hover:    #ccc9c3;
+    --glow:     none;
+    --scan:     transparent;
+    font-family: -apple-system, "SF Pro Text", "Inter", system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 13px;
+  }
+  body[data-theme="pro"] { background: var(--bg); }
+  /* Override most scifi flourishes when pro is active */
+  body[data-theme="pro"] .h-label,
+  body[data-theme="pro"] .h-title {
+    letter-spacing: 0.04em;
+    text-transform: none;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--fg);
+  }
+  body[data-theme="pro"] .h-label { color: var(--fg-dim); font-weight: 500; }
+  body[data-theme="pro"] code,
+  body[data-theme="pro"] .mono,
+  body[data-theme="pro"] .log-line .msg,
+  body[data-theme="pro"] #op-name,
+  body[data-theme="pro"] .svc-port,
+  body[data-theme="pro"] .cred-row .v,
+  body[data-theme="pro"] .intel-row .v,
+  body[data-theme="pro"] .cve-id,
+  body[data-theme="pro"] .cve-vec,
+  body[data-theme="pro"] .cve-score {
+    font-family: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+  }
+  body[data-theme="pro"] #brand { letter-spacing: 0.08em; color: var(--accent); font-weight: 700; }
+  body[data-theme="pro"] .tab {
+    letter-spacing: 0.02em;
+    text-transform: none;
+    font-size: 12px;
+    font-weight: 500;
+    border-right-color: var(--line-2);
+  }
+  body[data-theme="pro"] .tab:first-child { border-left-color: var(--line-2); }
+  body[data-theme="pro"] .tab.active {
+    background: var(--bg);
+    color: var(--accent);
+    box-shadow: inset 0 -2px 0 var(--accent), inset 0 2px 0 transparent;
+    border-bottom: 1px solid var(--bg);
+  }
+  body[data-theme="pro"] .tab .badge {
+    background: var(--bg);
+    color: var(--accent-2);
+    border-color: var(--line-2);
+    font-weight: 600;
+    letter-spacing: 0;
+  }
+  body[data-theme="pro"] .topcell {
+    background: var(--bg-2);
+    border-color: var(--line-2);
+  }
+  body[data-theme="pro"] .topcell .k { letter-spacing: 0.04em; text-transform: none; font-weight: 500; color: var(--fg-dim); }
+  body[data-theme="pro"] .topcell .v.accent { color: var(--accent); }
+  body[data-theme="pro"] .topcell .v.amber  { color: var(--warn); }
+  body[data-theme="pro"] .btn-primary {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+    letter-spacing: 0.02em;
+    text-transform: none;
+    font-weight: 600;
+  }
+  body[data-theme="pro"] .btn-primary:hover { background: #b8451a; border-color: #b8451a; color: #fff; }
+  body[data-theme="pro"] .btn-ghost {
+    background: var(--bg-2);
+    color: var(--fg);
+    border-color: var(--line-2);
+    letter-spacing: 0.02em;
+    text-transform: none;
+    font-weight: 500;
+  }
+  body[data-theme="pro"] .btn-ghost:hover { background: var(--bg-3); color: var(--accent); border-color: var(--accent); }
+  body[data-theme="pro"] #phase-strip { background: var(--bg-2); }
+  body[data-theme="pro"] .phase {
+    background: var(--bg);
+    border-color: var(--line-2);
+  }
+  body[data-theme="pro"] .phase .name { letter-spacing: 0.02em; text-transform: none; font-size: 12px; font-weight: 600; color: var(--fg); }
+  body[data-theme="pro"] .phase .idx,
+  body[data-theme="pro"] .phase .sub { letter-spacing: 0.04em; color: var(--fg-dim); }
+  body[data-theme="pro"] .phase.active { background: rgba(214,83,26,0.06); }
+  body[data-theme="pro"] .phase.active .name { color: var(--accent); }
+  body[data-theme="pro"] .phase.done { background: rgba(21,128,61,0.06); }
+  body[data-theme="pro"] .phase.done .name { color: var(--good); }
+  body[data-theme="pro"] .phase.active::after { background: var(--accent); }
+  body[data-theme="pro"] #phase-strip .phase:not(:last-child)::before {
+    background: var(--bg-2);
+    color: var(--line-2);
+  }
+  body[data-theme="pro"] .pane-head { background: var(--bg-2); }
+  body[data-theme="pro"] .log-line .src { letter-spacing: 0; text-transform: none; font-weight: 600; font-size: 10px; }
+  body[data-theme="pro"] .log-line .ts { color: var(--fg-dim); }
+  body[data-theme="pro"] .log-line .msg { font-size: 12px; color: var(--fg); }
+  body[data-theme="pro"] .src-ops    { color: var(--accent)   !important; border-color: var(--accent)   !important; }
+  body[data-theme="pro"] .src-claude { color: var(--accent-2) !important; border-color: var(--accent-2) !important; }
+  body[data-theme="pro"] .src-you    { color: var(--fg)       !important; border-color: var(--line-2)   !important; }
+  body[data-theme="pro"] .src-tool   { color: #6b21a8         !important; border-color: #6b21a8         !important; }
+  body[data-theme="pro"] .src-result { color: var(--good)     !important; border-color: var(--good)     !important; }
+  body[data-theme="pro"] #op-name { letter-spacing: 0; font-size: 18px; color: var(--accent); font-weight: 700; }
+  body[data-theme="pro"] #op-tagline { font-style: normal; color: var(--fg-dim); }
+  body[data-theme="pro"] .op-section .lab { letter-spacing: 0.04em; text-transform: none; font-weight: 600; color: var(--fg); }
+  body[data-theme="pro"] .op-section ul li::before { color: var(--accent); }
+  body[data-theme="pro"] .svc-card { background: var(--bg-2); border-color: var(--line-2); }
+  body[data-theme="pro"] .svc-card:hover { border-color: var(--line); }
+  body[data-theme="pro"] .svc-card.open { border-color: var(--accent); }
+  body[data-theme="pro"] .svc-name { letter-spacing: 0; text-transform: none; font-weight: 600; }
+  body[data-theme="pro"] .svc-port { color: var(--good); font-weight: 700; }
+  body[data-theme="pro"] .svc-body { background: var(--bg-3); }
+  body[data-theme="pro"] .svc-vector { background: var(--bg-2); border-color: var(--line); }
+  body[data-theme="pro"] .svc-vector code { color: var(--accent-2); }
+  body[data-theme="pro"] .dossier-kv .k { letter-spacing: 0.02em; text-transform: none; font-weight: 500; color: var(--fg-dim); }
+  body[data-theme="pro"] .toolkit button { background: var(--bg-2); border-color: var(--line-2); color: var(--fg); }
+  body[data-theme="pro"] .toolkit button:hover { border-color: var(--accent); color: var(--accent); background: var(--bg-3); }
+  body[data-theme="pro"] .toolkit button .tag { letter-spacing: 0.04em; }
+  body[data-theme="pro"] .tip { background: var(--bg-2); }
+  body[data-theme="pro"] .tip b { color: var(--accent); }
+  body[data-theme="pro"] #footer { background: var(--bg-2); color: var(--fg-dim); letter-spacing: 0; }
+  body[data-theme="pro"] #footer select { background: var(--bg); color: var(--fg); border-color: var(--line-2); }
+  body[data-theme="pro"] #footer a { color: var(--accent-2); }
+  body[data-theme="pro"] #status-led { background: var(--bg-2); border-color: var(--line-2); }
+  body[data-theme="pro"] #status-led.live .led { background: var(--good); }
+  body[data-theme="pro"] .toast { background: var(--bg-2); border-color: var(--good); color: var(--good); letter-spacing: 0; text-transform: none; font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+  body[data-theme="pro"] .toast.warn { border-color: var(--warn); color: var(--warn); }
+  body[data-theme="pro"] .toast.bad  { border-color: var(--bad);  color: var(--bad); }
+  body[data-theme="pro"] .intel-group { background: var(--bg-2); border-color: var(--line-2); }
+  body[data-theme="pro"] .intel-group-head { background: var(--bg-3); border-bottom-color: var(--line-2); }
+  body[data-theme="pro"] .intel-group-head .lab { letter-spacing: 0.02em; text-transform: none; color: var(--accent); font-weight: 600; }
+  body[data-theme="pro"] .intel-row .k { letter-spacing: 0; text-transform: none; color: var(--fg-dim); font-weight: 500; }
+  body[data-theme="pro"] .cred-card { background: var(--bg-2); border-color: var(--line-2); }
+  body[data-theme="pro"] .cred-card .cred-svc { letter-spacing: 0; text-transform: none; color: var(--accent); font-weight: 600; }
+  body[data-theme="pro"] .cred-row .k { letter-spacing: 0; text-transform: none; color: var(--fg-dim); font-weight: 500; }
+  body[data-theme="pro"] .cve-card { background: var(--bg-2); border-color: var(--line-2); }
+  body[data-theme="pro"] .cve-sev-badge { letter-spacing: 0; text-transform: none; font-weight: 600; }
+  body[data-theme="pro"] .cve-meta { letter-spacing: 0; text-transform: none; }
+  body[data-theme="pro"] #heartbeat { background: var(--bg-2); border-color: var(--line-2); opacity: 0.6; }
+  body[data-theme="pro"] ::selection { background: rgba(214,83,26,0.25); color: var(--fg); }
+  body[data-theme="pro"] .glow-text { text-shadow: none; }
+  body[data-theme="pro"] #row-resizer { background: var(--line); }
+  body[data-theme="pro"] #row-resizer:hover, body[data-theme="pro"] #row-resizer.dragging { background: var(--accent); }
+  body[data-theme="pro"] #row-resizer::before { background: var(--line-2); }
+
   /* ---------- TYPOGRAPHY ---------- */
   .h-label {
     text-transform: uppercase;
@@ -591,6 +751,15 @@
     font-size: 11px;
     color: var(--fg);
   }
+  #footer #btn-theme {
+    padding: 2px 10px;
+    font-size: 10px;
+    border-color: var(--line-2);
+    color: var(--fg-dim);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+  #footer #btn-theme:hover { color: var(--accent); border-color: var(--accent); }
   #footer a {
     color: var(--accent);
     text-decoration: none;
@@ -598,8 +767,8 @@
   }
   #footer a:hover { text-decoration: underline; }
 
-  /* ---------- CREDS VIEW ---------- */
-  #creds {
+  /* ---------- CREDS + INTEL + CVES VIEW shared layout ---------- */
+  #creds, #intel, #cves {
     display: none;
     grid-template-columns: 2fr 1fr;
     gap: 1px;
@@ -608,8 +777,260 @@
     min-height: 0;
     grid-row: 3 / 5;
   }
-  #creds.show { display: grid; }
-  #creds > * { background: var(--bg); min-height: 0; }
+  #creds.show, #intel.show, #cves.show { display: grid; }
+  #creds > *, #intel > *, #cves > * { background: var(--bg); min-height: 0; }
+
+  /* ---------- CVE cards ---------- */
+  .cve-card {
+    border: 1px solid var(--line);
+    background: var(--bg-2);
+    margin-bottom: 10px;
+    border-left: 3px solid var(--line-2);
+  }
+  .cve-card.sev-critical { border-left-color: var(--bad);  background: linear-gradient(90deg, rgba(194,86,86,0.10), var(--bg-2) 40%); }
+  .cve-card.sev-high     { border-left-color: var(--warn); background: linear-gradient(90deg, rgba(212,168,87,0.10), var(--bg-2) 40%); }
+  .cve-card.sev-medium   { border-left-color: var(--accent); }
+  .cve-card.sev-low      { border-left-color: var(--fg-dim); }
+  .cve-card.sev-loading  { border-left-color: var(--line-2); }
+  .cve-card .cve-head {
+    display: grid;
+    grid-template-columns: auto auto 1fr auto auto;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border-bottom: 1px dotted var(--line);
+  }
+  .cve-card .cve-id {
+    font-weight: 700;
+    color: var(--accent);
+    font-size: 13px;
+    letter-spacing: 0.06em;
+  }
+  body[data-theme="neon"] .cve-card .cve-id { text-shadow: var(--glow); }
+  .cve-card.sev-critical .cve-id { color: var(--bad); }
+  .cve-card.sev-high     .cve-id { color: var(--warn); }
+  .cve-sev-badge {
+    padding: 2px 8px;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    border: 1px solid currentColor;
+    color: var(--fg-dim);
+  }
+  .cve-card.sev-critical .cve-sev-badge { color: var(--bad); }
+  .cve-card.sev-high     .cve-sev-badge { color: var(--warn); }
+  .cve-card.sev-medium   .cve-sev-badge { color: var(--accent); }
+  .cve-card.sev-low      .cve-sev-badge { color: var(--fg-dim); }
+  .cve-score {
+    font-family: ui-monospace, monospace;
+    font-size: 12px;
+    color: var(--fg);
+    font-weight: 700;
+  }
+  .cve-card.sev-critical .cve-score { color: var(--bad); }
+  .cve-card.sev-high     .cve-score { color: var(--warn); }
+  .cve-vec {
+    font-size: 10px;
+    color: var(--fg-dim);
+    font-family: ui-monospace, monospace;
+  }
+  .cve-card .cve-actions { display: flex; gap: 4px; }
+  .cve-card .cve-actions button {
+    font-size: 10px;
+    padding: 2px 8px;
+    color: var(--fg-dim);
+    border-color: var(--line-2);
+  }
+  .cve-card .cve-actions button:hover { color: var(--accent); border-color: var(--accent); }
+  .cve-card .cve-actions button.del:hover { color: var(--bad); border-color: var(--bad); }
+  .cve-body {
+    padding: 10px 12px;
+  }
+  .cve-summary {
+    color: var(--fg);
+    font-size: 12px;
+    line-height: 1.5;
+  }
+  .cve-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 22px;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px dotted var(--line);
+    font-size: 10px;
+    color: var(--fg-dim);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .cve-meta .v { color: var(--fg); font-family: ui-monospace, monospace; text-transform: none; letter-spacing: 0; }
+  .cve-products {
+    margin-top: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .cve-products .chip {
+    font-size: 10px;
+    padding: 2px 6px;
+    border: 1px solid var(--line);
+    background: var(--bg-3);
+    color: var(--fg-dim);
+    font-family: ui-monospace, monospace;
+  }
+  .cve-trail {
+    margin-top: 8px;
+    padding-top: 6px;
+    border-top: 1px dotted var(--line);
+    font-size: 10px;
+    color: var(--fg-dim);
+    font-style: italic;
+  }
+  .cve-card.fresh { animation: cveflash 1.8s ease-out; }
+  @keyframes cveflash {
+    0%   { box-shadow: 0 0 0 2px var(--accent); }
+    100% { box-shadow: none; }
+  }
+  #cve-form { display: flex; flex-direction: column; gap: 8px; }
+  #cve-form label {
+    display: flex; flex-direction: column;
+    gap: 3px;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--fg-dim);
+  }
+  #cve-form input {
+    background: var(--bg-3);
+    border-color: var(--line);
+    color: var(--fg);
+    font-family: ui-monospace, monospace;
+    padding: 5px 8px;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  #cve-form button {
+    padding: 8px 12px;
+    border-color: var(--accent);
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    font-size: 11px;
+  }
+  #cve-form button:hover { background: var(--accent); color: var(--bg); }
+
+  /* ---------- INTEL cards ---------- */
+  .intel-group {
+    border: 1px solid var(--line);
+    background: var(--bg-2);
+    margin-bottom: 10px;
+  }
+  .intel-group-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    background: var(--bg-3);
+    border-bottom: 1px solid var(--line);
+  }
+  .intel-group-head .icon {
+    font-size: 13px;
+    color: var(--accent);
+    width: 18px;
+    text-align: center;
+  }
+  .intel-group-head .lab {
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 11px;
+    flex: 1;
+  }
+  body[data-theme="neon"] .intel-group-head .lab { text-shadow: var(--glow); }
+  .intel-group-head .ct {
+    color: var(--fg-dim);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+  }
+  .intel-row {
+    display: grid;
+    grid-template-columns: 130px 1fr auto;
+    gap: 10px;
+    padding: 5px 10px;
+    border-top: 1px dotted var(--line);
+    align-items: baseline;
+    font-size: 12px;
+  }
+  .intel-row:first-of-type { border-top: none; }
+  .intel-row .k {
+    color: var(--fg-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.13em;
+    font-size: 10px;
+    word-break: break-all;
+  }
+  .intel-row .v {
+    color: var(--fg);
+    word-break: break-word;
+    font-family: ui-monospace, monospace;
+  }
+  .intel-row .v.good { color: var(--good); }
+  .intel-row .v.warn { color: var(--warn); }
+  .intel-row .v.bad  { color: var(--bad); }
+  .intel-row .meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+    color: var(--fg-dim);
+    font-size: 9px;
+    letter-spacing: 0.1em;
+  }
+  .intel-row .meta button {
+    font-size: 9px;
+    padding: 1px 5px;
+    color: var(--fg-dim);
+    border-color: var(--line-2);
+    margin-left: 4px;
+  }
+  .intel-row .meta button:hover { color: var(--bad); border-color: var(--bad); }
+  .intel-row.fresh {
+    animation: intelflash 1.6s ease-out;
+  }
+  @keyframes intelflash {
+    0%   { background: rgba(92,184,216,0.25); }
+    100% { background: transparent; }
+  }
+  #intel-form { display: flex; flex-direction: column; gap: 8px; }
+  #intel-form label {
+    display: flex; flex-direction: column;
+    gap: 3px;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--fg-dim);
+  }
+  #intel-form input, #intel-form select, #intel-form textarea {
+    background: var(--bg-3);
+    border-color: var(--line);
+    color: var(--fg);
+    font-family: ui-monospace, monospace;
+    padding: 5px 8px;
+    font-size: 12px;
+    text-transform: none;
+    letter-spacing: normal;
+  }
+  #intel-form textarea { resize: vertical; min-height: 50px; }
+  #intel-form button {
+    padding: 8px 12px;
+    border-color: var(--accent);
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    font-size: 11px;
+  }
+  #intel-form button:hover { background: var(--accent); color: var(--bg); }
   .cred-card {
     border: 1px solid var(--line);
     background: var(--bg-2);
@@ -729,10 +1150,13 @@
   .toast.warn { border-color: var(--warn); color: var(--warn); }
   .toast.bad  { border-color: var(--bad);  color: var(--bad); }
 
-  /* hide stuff when in creds view */
-  body.view-creds #phase-strip,
-  body.view-creds #main { display: none; }
+  /* hide stuff when in creds / intel / cves view */
+  body.view-creds #phase-strip, body.view-creds #main,
+  body.view-intel #phase-strip, body.view-intel #main,
+  body.view-cves  #phase-strip, body.view-cves  #main { display: none; }
   body.view-creds #creds { display: grid; }
+  body.view-intel #intel { display: grid; }
+  body.view-cves  #cves  { display: grid; }
 
   /* ---------- ESCALATION OVERLAY ---------- */
   #esc-overlay {
@@ -951,12 +1375,13 @@
 
     <div id="status-led"><span class="led"></span><span class="h-label" id="status-text">STANDBY</span></div>
     <button class="btn-primary" id="btn-listener">⚡ Arm Listener :4444</button>
-    <button class="btn-ghost" id="btn-theme">◐ Theme</button>
   </div>
 
   <!-- ============== TABS ============== -->
   <div id="tabs">
     <button class="tab active" data-view="ops">Operations</button>
+    <button class="tab" data-view="intel">System Info <span class="badge" id="intel-badge">0</span></button>
+    <button class="tab" data-view="cves">CVEs <span class="badge" id="cve-badge">0</span></button>
     <button class="tab" data-view="creds">Credentials <span class="badge" id="cred-badge">0</span></button>
   </div>
 
@@ -1042,6 +1467,74 @@
     </div>
   </div>
 
+  <!-- ============== CVES VIEW ============== -->
+  <div id="cves">
+    <div class="pane">
+      <div class="pane-head">
+        <span class="h-title glow-text">▌ CVE Watchlist</span>
+        <span class="spacer"></span>
+        <span class="h-label" id="cve-count">0 CVEs</span>
+        <button class="btn-ghost" id="btn-cve-clear">Clear</button>
+      </div>
+      <div class="pane-body" id="cve-body">
+        <div class="h-label" style="color:var(--fg-dim);">No CVEs surfaced yet. The HUD watches the telemetry for CVE-IDs and looks each one up automatically from NVD.</div>
+      </div>
+    </div>
+    <div class="pane">
+      <div class="pane-head"><span class="h-title glow-text">▌ Lookup CVE</span></div>
+      <div class="pane-body">
+        <form id="cve-form">
+          <label>CVE ID<input name="cve" placeholder="CVE-2021-3156"></label>
+          <button type="submit">+ Add &amp; Look Up</button>
+        </form>
+        <div class="tip" style="margin-top:14px;">
+          <b>Auto-detect.</b> Anything in the telemetry that matches <code class="k">CVE-YYYY-NNNN</code> is captured. Severity color: red ≥ 9.0 (critical), amber 7.0+ (high), teal 4.0+ (medium), dim &lt; 4.0 (low).
+          <br><br>
+          <b>Source.</b> Lookups go to <code class="k">services.nvd.nist.gov</code> (no API key needed). Results cached locally.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============== INTEL VIEW ============== -->
+  <div id="intel">
+    <div class="pane">
+      <div class="pane-head">
+        <span class="h-title glow-text">▌ System Information</span>
+        <span class="spacer"></span>
+        <span class="h-label" id="intel-count">0 facts</span>
+        <button class="btn-ghost" id="btn-intel-clear">Clear</button>
+      </div>
+      <div class="pane-body" id="intel-body">
+        <div class="h-label" style="color:var(--fg-dim);">No intel collected yet. Run tools — anything we learn about the target gets sorted into categories here.</div>
+      </div>
+    </div>
+    <div class="pane">
+      <div class="pane-head"><span class="h-title glow-text">▌ Pin a Note</span></div>
+      <div class="pane-body">
+        <form id="intel-form">
+          <label>Category
+            <select name="category">
+              <option value="system">System</option>
+              <option value="users">User</option>
+              <option value="shares">Share / mount</option>
+              <option value="web">Web</option>
+              <option value="vulns">Vulnerability</option>
+              <option value="notes" selected>Note</option>
+            </select>
+          </label>
+          <label>Key<input name="key" placeholder="e.g. /admin, kernel, doak"></label>
+          <label>Value<textarea name="value" placeholder="What did we learn?"></textarea></label>
+          <label>Source<input name="source" placeholder="nmap / manual / hydra…"></label>
+          <button type="submit">+ Pin Intel</button>
+        </form>
+        <div class="tip" style="margin-top:14px;">
+          <b>Auto-collection.</b> The HUD watches the telemetry stream and silently pins anything that looks like target info — OS strings, usernames, shares, web tech, CVE IDs, paths. Pinned notes from this form sit alongside them.
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ============== CREDS VIEW ============== -->
   <div id="creds">
     <div class="pane">
@@ -1071,6 +1564,7 @@
 
   <!-- ============== FOOTER ============== -->
   <div id="footer">
+    <button class="btn-ghost" id="btn-theme" title="Cycle theme">◐ <span id="theme-label">Tactical</span></button>
     <span class="h-label">SRC</span>
     <select id="log-source"><option value="">auto-detect</option></select>
     <span id="freshness">last update —</span>
@@ -1128,6 +1622,7 @@ const state = {
   telLines:     0,
   lastFresh:    0,
   liveUntil:    0,
+  arrivalsT:    [],   // timestamps (ms) of real telemetry arrivals, last 90s
 };
 
 /* ===================================================================
@@ -1392,15 +1887,22 @@ function nowHHMMSS(d=new Date()) {
 /* ===================================================================
    THEME
    =================================================================== */
+const THEME_ORDER = ["tactical", "neon", "pro"];
+const THEME_LABEL = { tactical: "Tactical", neon: "Neon", pro: "Pro (light)" };
 function applyTheme(t) {
+  if (!THEME_ORDER.includes(t)) t = "tactical";
   state.theme = t;
   document.body.setAttribute("data-theme", t);
   localStorage.setItem("thm-theme", t);
+  const lbl = document.getElementById("theme-label");
+  if (lbl) lbl.textContent = THEME_LABEL[t];
 }
 applyTheme(state.theme);
 $("#btn-theme").addEventListener("click", () => {
-  applyTheme(state.theme === "tactical" ? "neon" : "tactical");
-  toast(`Theme → ${state.theme.toUpperCase()}`, "warn");
+  const i = THEME_ORDER.indexOf(state.theme);
+  const next = THEME_ORDER[(i + 1) % THEME_ORDER.length];
+  applyTheme(next);
+  toast(`Theme → ${THEME_LABEL[next]}`, "warn");
 });
 
 /* ===================================================================
@@ -1423,10 +1925,11 @@ function isNearBottom(el) {
 function pushLine({ts, src, msg, level}) {
   const body = $("#tel-body");
   const stick = isNearBottom(body);
+  const srcUp = (src||"OPS");
   const line = el("div",
     { class: "log-line" + (level ? " "+level : "") },
     el("span", { class: "ts" }, ts || nowHHMMSS()),
-    el("span", { class: "src src-" + (src||"ops").toLowerCase() }, (src||"OPS")),
+    el("span", { class: "src src-" + srcUp.toLowerCase() }, srcUp),
     el("span", { class: "msg" }, msg)
   );
   body.appendChild(line);
@@ -1434,6 +1937,13 @@ function pushLine({ts, src, msg, level}) {
   while (body.childElementCount > MAX_TEL) body.removeChild(body.firstChild);
   $("#tel-count").textContent = state.telLines + " lines";
   if (stick) body.scrollTop = body.scrollHeight;
+  // record real arrivals (excluding our own ambient OPS ticks) for the sparkline
+  if (srcUp !== "OPS") {
+    state.arrivalsT.push(Date.now());
+    // keep only last 90 seconds
+    const cutoff = Date.now() - 90000;
+    while (state.arrivalsT.length && state.arrivalsT[0] < cutoff) state.arrivalsT.shift();
+  }
   // status LED — live for a moment
   state.liveUntil = Date.now() + 4000;
   updateLED();
@@ -1648,15 +2158,24 @@ function parseLogLine(line) {
   const portState = line.match(/^(\d+)\/(tcp|udp)\s+open\s+(\S+)(?:\s+(.+))?$/i);
   if (portState) noteOpenPort(portState[1], portState[3], (portState[4]||"").trim());
 
-  // Hydra hit
-  const hit = line.match(/host:\s*(\S+).*login:\s*(\S+)\s+password:\s*(\S+)/i);
+  // Hydra hit — only match when there's no garbage after the password.
+  // The password capture is lazy and bounded by whitespace, end-of-line,
+  // or a literal "\n" escape sequence (which appears when JSON-encoded
+  // tool output is being scanned).
+  const hit = line.match(/host:\s*(\S+).*?login:\s*(\S+)\s+password:\s*([^\s"]+?)(?=\s|\\n|"|$)/i);
   if (hit) {
-    const cred = { service: state.activeTool === "hydra" ? "hydra" : "?",
-                   host: hit[1], username: hit[2], password: hit[3], source: "hydra", notes: line.trim() };
-    toast(`CRED CAPTURED → ${cred.username}:${cred.password}`, "good", 5000);
-    fetch("/api/creds", { method:"POST", headers:{"Content-Type":"application/json"},
-      body: JSON.stringify(cred) }).catch(()=>{});
-    advancePhase(4);
+    let host = hit[1], username = hit[2], password = hit[3];
+    // strip leading/trailing punctuation/quotes from anything escaped via JSON
+    username = username.replace(/^["']+|["']+$/g, "");
+    password = password.replace(/^["']+|["']+$/g, "").replace(/\\n.*$/, "");
+    if (username && password && password.length < 80) {
+      const cred = { service: state.activeTool === "hydra" ? "hydra" : "?",
+                     host, username, password, source: "hydra", notes: "" };
+      toast(`CRED CAPTURED → ${cred.username}:${cred.password}`, "good", 5000);
+      fetch("/api/creds", { method:"POST", headers:{"Content-Type":"application/json"},
+        body: JSON.stringify(cred) }).catch(()=>{});
+      advancePhase(4);
+    }
   }
 
   pushLine({ src:"TOOL", msg: line, level: classifyLine(line) });
@@ -1700,6 +2219,9 @@ async function pollLogList() {
 }
 async function pollLogTail() {
   if (!state.logPath) return;
+  // ops.jsonl is consumed by the /api/events pipeline; tailing it as plain
+  // text would double-parse JSON-encoded records and produce garbage hits.
+  if (/ops\.jsonl$/.test(state.logPath)) return;
   const u = `/api/logtail?path=${encodeURIComponent(state.logPath)}&offset=${state.logOffset}`;
   const res = await fetchJSON(u);
   if (!res) return;
@@ -1735,7 +2257,7 @@ function renderEvent(ev) {
     const text = stripMeta(ev.text || "");
     if (text) pushLine({ src:"YOU", msg: text.length>500 ? text.slice(0,500)+"…" : text });
   } else if (t === "tool_use") {
-    pushLine({ src:"TOOL", msg: `▶ ${ev.name || "tool"} ${ev.input_preview ? "— " + ev.input_preview : ""}`, level:"dim" });
+    pushLine({ src:"TOOL", msg: `▶ ${ev.tool || ev.name || "tool"} ${ev.input_preview ? "— " + ev.input_preview : ""}`, level:"dim" });
   } else if (t === "tool_result") {
     const text = stripMeta(ev.text || "");
     if (text) {
@@ -1857,7 +2379,11 @@ $$(".tab").forEach(t => t.addEventListener("click", () => {
   t.classList.add("active");
   state.view = t.dataset.view;
   document.body.classList.toggle("view-creds", state.view === "creds");
+  document.body.classList.toggle("view-intel", state.view === "intel");
+  document.body.classList.toggle("view-cves",  state.view === "cves");
   if (state.view === "creds") renderCreds();
+  if (state.view === "intel") renderIntel();
+  if (state.view === "cves")  renderCves();
 }));
 
 /* ===================================================================
@@ -2012,69 +2538,66 @@ function resizeHB() {
 window.addEventListener("resize", resizeHB);
 resizeHB();
 
-let hbBuf = []; // ring of recent y-values
-let hbT = 0;
+// Real sparkline: events per 1-second bucket over the last 60s.
+// Each bar = count of telemetry arrivals (excl. our own OPS ticks) in that second.
 function hbStep() {
   const w = hbCanvas.width, h = hbCanvas.height;
-  hbT++;
-  // generate next sample — mostly flat baseline with periodic spikes
-  const mid = h * 0.5;
-  let y = mid + (Math.random() - 0.5) * (h * 0.05);
-  // spike every ~70 ticks (~2s @ 35ms) — bigger if we recently had real activity
-  const beatPeriod = 70;
-  const phase = hbT % beatPeriod;
-  const live = Date.now() < state.liveUntil;
-  if (phase === 0)      y = mid - h * (live ? 0.42 : 0.32);
-  else if (phase === 1) y = mid + h * (live ? 0.34 : 0.22);
-  else if (phase === 2) y = mid - h * 0.08;
+  const now = Date.now();
+  const BUCKETS = 60;       // 60 one-second columns
+  const buckets = new Array(BUCKETS).fill(0);
+  for (const t of state.arrivalsT) {
+    const ageS = Math.floor((now - t) / 1000);
+    if (ageS >= 0 && ageS < BUCKETS) buckets[BUCKETS - 1 - ageS]++;
+  }
+  const peak = Math.max(1, ...buckets);
 
-  hbBuf.push(y);
-  const maxBuf = Math.floor(w / 2);
-  if (hbBuf.length > maxBuf) hbBuf.shift();
+  const cs = getComputedStyle(document.body);
+  const cBase = (cs.getPropertyValue("--line-2") || "#283341").trim();
+  const cAccent = (cs.getPropertyValue("--accent") || "#5cb8d8").trim();
+  const cGood = (cs.getPropertyValue("--good") || "#4ea877").trim();
 
-  // draw
-  hbCtx.clearRect(0,0,w,h);
-  // grid baseline
-  hbCtx.strokeStyle = getComputedStyle(document.body).getPropertyValue("--line-2").trim() || "#283341";
+  hbCtx.clearRect(0, 0, w, h);
+  // baseline
+  hbCtx.strokeStyle = cBase;
   hbCtx.lineWidth = 1;
   hbCtx.beginPath();
-  hbCtx.moveTo(0, mid); hbCtx.lineTo(w, mid); hbCtx.stroke();
-  // trace
-  hbCtx.strokeStyle = live
-    ? (getComputedStyle(document.body).getPropertyValue("--good").trim() || "#4ea877")
-    : (getComputedStyle(document.body).getPropertyValue("--accent").trim() || "#5cb8d8");
-  hbCtx.lineWidth = 1.5 * devicePixelRatio;
-  hbCtx.beginPath();
-  hbBuf.forEach((v,i) => {
-    const x = w - (hbBuf.length - i) * 2;
-    if (i === 0) hbCtx.moveTo(x, v);
-    else hbCtx.lineTo(x, v);
-  });
-  hbCtx.stroke();
-}
-setInterval(hbStep, 35);
+  hbCtx.moveTo(0, h - 0.5); hbCtx.lineTo(w, h - 0.5); hbCtx.stroke();
 
-// Ambient heartbeat lines — drip something into telemetry even when idle
-const HB_LINES = [
-  () => `radar sweep ${Math.floor(Math.random()*360).toString().padStart(3,"0")}° — ${state.target!=="—"?state.target:"no target"} — rtt ${ (Math.random()*60+5).toFixed(1) }ms`,
-  () => `${Object.keys(state.services).length} services tracked — ${state.telLines} telemetry lines — buffer healthy`,
-  () => `link layer steady — ${ (Math.random()*1000+200).toFixed(0) } pps inbound / ${ (Math.random()*800+100).toFixed(0) } pps outbound`,
-  () => `dossier idle — phase: ${state.phase||"—"} — tool: ${(state.activeTool||"none").toUpperCase()}`,
-  () => `keepalive ${new Date().toISOString().slice(11,19)}Z — ops console operational`,
-  () => `tracing route to ${state.target!=="—"?state.target:"target"} — hop count stable — ttl ${ Math.floor(Math.random()*8+56) }`,
-  () => `arp cache: ${Math.floor(Math.random()*6+2)} entries — neighbor table consistent`,
-  () => `entropy pool: ${Math.floor(Math.random()*40+220)}/256 bits — listener ready`,
-];
+  // bars
+  const barW = w / BUCKETS;
+  for (let i = 0; i < BUCKETS; i++) {
+    const v = buckets[i];
+    if (!v) continue;
+    const barH = Math.max(1, (v / peak) * (h - 2));
+    // most recent column = good color, older = accent
+    hbCtx.fillStyle = (i === BUCKETS - 1) ? cGood : cAccent;
+    hbCtx.fillRect(i * barW, h - barH - 0.5, Math.max(1, barW - 1 * devicePixelRatio), barH);
+  }
+}
+setInterval(hbStep, 1000);
+
+// Honest idle-status lines — every value here is a real measurement from
+// the running HUD. Emitted only after a long quiet period, so this is a
+// "I'm still here, here's actual state" tick, not fake instrumentation.
+function idleStatus() {
+  const quietS = Math.floor((Date.now() - state.lastFresh) / 1000);
+  const tool = state.activeTool ? state.activeTool.toUpperCase() : "none";
+  const phase = (state.activeTool && state.phases[state.phaseIdx])
+                ? state.phases[state.phaseIdx].name
+                : "idle";
+  const ports = Object.keys(state.services).length;
+  const tgt = state.target !== "—" ? state.target : "no target";
+  return `idle ${quietS}s · target ${tgt} · tool ${tool} · phase ${phase} · ports ${ports} · stream ${state.telLines}`;
+}
 let lastAmbient = 0;
 setInterval(() => {
   const now = Date.now();
-  // only drip ambient if the stream has been quiet for >2s
-  if (now - state.lastFresh > 2000 && now - lastAmbient > 1800) {
-    const gen = HB_LINES[Math.floor(Math.random() * HB_LINES.length)];
-    pushLine({ src: "OPS", msg: "· " + gen(), level: "dim" });
+  // only tick if the stream has been quiet for >15s (was 2s — way too chatty)
+  if (now - state.lastFresh > 15000 && now - lastAmbient > 30000) {
+    pushLine({ src: "OPS", msg: "· " + idleStatus(), level: "dim" });
     lastAmbient = now;
   }
-}, 900);
+}, 5000);
 
 /* ===================================================================
    RESIZER — drag the row divider to grow/shrink telemetry vs row2
@@ -2126,6 +2649,443 @@ setInterval(() => {
     localStorage.removeItem("thm-row1-pct");
   });
 })();
+
+/* ===================================================================
+   TARGET INTEL — categorized facts about the target system
+   =================================================================== */
+const INTEL_GROUPS = [
+  { id: "system",  label: "System",          icon: "⊞" },
+  { id: "users",   label: "Users",           icon: "◉" },
+  { id: "shares",  label: "Shares & Mounts", icon: "▤" },
+  { id: "web",     label: "Web",             icon: "⌘" },
+  { id: "vulns",   label: "Vulnerabilities", icon: "⚠" },
+  { id: "notes",   label: "Notes (pinned)",  icon: "★" },
+];
+state.intel       = {};       // keyed by `${category}::${key}` → {category,key,value,source,ts}
+state.intelFresh  = new Set(); // keys added in the last few seconds (for flash anim)
+
+function loadIntel() {
+  try {
+    const raw = localStorage.getItem("thm-intel");
+    if (raw) state.intel = JSON.parse(raw) || {};
+  } catch { state.intel = {}; }
+}
+function saveIntel() {
+  try { localStorage.setItem("thm-intel", JSON.stringify(state.intel)); } catch {}
+}
+function intelKey(category, key) {
+  return category + "::" + String(key||"").toLowerCase();
+}
+function addIntel(category, key, value, source, opts={}) {
+  if (!key || !value) return false;
+  category = String(category||"notes").toLowerCase();
+  key = String(key).trim();
+  value = String(value).trim().slice(0, 600);
+  source = String(source||"auto").trim();
+  const k = intelKey(category, key);
+  const existing = state.intel[k];
+  // Skip if we already have it with the same value
+  if (existing && existing.value === value) return false;
+  state.intel[k] = { category, key, value, source, ts: Date.now() };
+  state.intelFresh.add(k);
+  setTimeout(() => { state.intelFresh.delete(k); if (state.view === "intel") renderIntel(); }, 1800);
+  saveIntel();
+  updateIntelBadge();
+  if (state.view === "intel") renderIntel();
+  if (!opts.silent && !existing) {
+    pushLine({ src:"OPS", msg: `▤ intel · ${category} · ${key} = ${value.length>60?value.slice(0,60)+"…":value}`, level:"dim" });
+  }
+  return true;
+}
+function removeIntel(k) {
+  delete state.intel[k];
+  saveIntel();
+  updateIntelBadge();
+  renderIntel();
+}
+function clearIntel() {
+  state.intel = {};
+  saveIntel();
+  updateIntelBadge();
+  renderIntel();
+}
+function updateIntelBadge() {
+  const n = Object.keys(state.intel).length;
+  $("#intel-badge").textContent = n;
+  $("#intel-count").textContent = n + " fact" + (n===1?"":"s");
+}
+
+function renderIntel() {
+  const body = $("#intel-body");
+  body.innerHTML = "";
+  const all = Object.entries(state.intel);
+  if (!all.length) {
+    body.appendChild(el("div", { class:"h-label", style:"color:var(--fg-dim);" },
+      "No intel collected yet. Run tools — anything we learn about the target gets sorted into categories here."));
+    return;
+  }
+  // group by category
+  const grouped = {};
+  for (const g of INTEL_GROUPS) grouped[g.id] = [];
+  for (const [k, fact] of all) {
+    (grouped[fact.category] || (grouped[fact.category] = [])).push([k, fact]);
+  }
+  for (const g of INTEL_GROUPS) {
+    const list = grouped[g.id] || [];
+    if (!list.length) continue;
+    list.sort((a,b) => (b[1].ts||0) - (a[1].ts||0));
+    const group = el("div", { class:"intel-group" });
+    group.appendChild(el("div", { class:"intel-group-head" },
+      el("span", { class:"icon" }, g.icon),
+      el("span", { class:"lab" }, g.label),
+      el("span", { class:"ct" }, list.length + " " + (list.length===1?"entry":"entries"))
+    ));
+    for (const [k, fact] of list) {
+      const row = el("div", { class: "intel-row" + (state.intelFresh.has(k) ? " fresh" : "") },
+        el("span", { class:"k" }, fact.key),
+        el("span", { class:"v" }, fact.value),
+        el("div", { class:"meta" },
+          el("span", {}, "via " + (fact.source||"auto")),
+          el("div", {},
+            el("button", { onclick: () => { navigator.clipboard.writeText(fact.value); toast("Copied"); } }, "CP"),
+            el("button", { onclick: () => removeIntel(k) }, "✕")
+          )
+        )
+      );
+      group.appendChild(row);
+    }
+    body.appendChild(group);
+  }
+}
+
+/* ----- Auto-extraction from telemetry text ----- */
+function extractIntelFromLine(line, sourceHint) {
+  if (!line || !line.trim()) return;
+  const L = String(line);
+  const src = sourceHint || "auto";
+
+  // OS / kernel
+  let m;
+  if ((m = L.match(/\bLinux\s+\S+\s+(\d+\.\d+\.\d+(?:-\S+)?)/i)))            addIntel("system", "kernel", m[1], src, {silent:true});
+  if ((m = L.match(/\bUbuntu\s+(\d+\.\d+(?:\.\d+)?(?:\s+LTS)?)/i)))           addIntel("system", "distro", "Ubuntu " + m[1], src, {silent:true});
+  if ((m = L.match(/\bDebian\s+GNU\/Linux\s+(\d+(?:\.\d+)?)/i)))              addIntel("system", "distro", "Debian " + m[1], src, {silent:true});
+  if ((m = L.match(/\bCentOS\s+(?:Linux\s+)?(\d+(?:\.\d+)?)/i)))              addIntel("system", "distro", "CentOS " + m[1], src, {silent:true});
+  if ((m = L.match(/\bWindows\s+(Server\s+\d{4}|10|11|XP|7|8(?:\.1)?)\b/i))) addIntel("system", "os", "Windows " + m[1], src, {silent:true});
+  if ((m = L.match(/OS:\s+([^|;\n]{3,80})/i)))                                addIntel("system", "os-detected", m[1].trim(), src, {silent:true});
+  if ((m = L.match(/uname[^\n]*\s+(\S+)\s+(\d+\.\d+\.\d+\S*)/i)))             addIntel("system", "uname", m[0].trim().slice(0,160), src, {silent:true});
+
+  // Hostnames + domains (avoid common false positives)
+  const hostMatches = L.match(/\b([a-z0-9][a-z0-9\-]{0,30}\.(?:local|htb|thm|home|lan|internal|corp))\b/gi);
+  if (hostMatches) for (const h of hostMatches) addIntel("system", "hostname", h.toLowerCase(), src, {silent:true});
+  if ((m = L.match(/\bDomain:\s+([A-Z0-9.\-]+)/)))                            addIntel("system", "domain", m[1], src, {silent:true});
+  if ((m = L.match(/\bworkgroup:\s+(\S+)/i)))                                  addIntel("system", "workgroup", m[1], src, {silent:true});
+
+  // Users — passwd-style lines, hydra hits, smb users
+  const passwdRe = /^([a-z_][a-z0-9_-]{0,31}):[x*!]:\d+:\d+/img;
+  let pm; while ((pm = passwdRe.exec(L)) !== null) addIntel("users", pm[1], "uid line present", src, {silent:true});
+  if ((m = L.match(/\bhost:\s*\S+\s+login:\s*(\S+)\s+password:\s*(\S+)/i)))   addIntel("users", m[1], "password: " + m[2], "hydra", {silent:true});
+  if ((m = L.match(/\bUser:\s+([A-Za-z0-9._-]+)\s+RID:/i)))                   addIntel("users", m[1], "SMB-enum user", src, {silent:true});
+
+  // SMB / NFS shares
+  if ((m = L.match(/\bDisk\s+\|\s+(\S+)\b/)))                                  addIntel("shares", m[1], "SMB share", src, {silent:true});
+  // smbclient -L style: "  ShareName    Disk    Comment"
+  const smbShareRe = /^\s*([A-Za-z0-9_$\-]+)\s+Disk\s+(.+?)\s*$/gm;
+  let sm; while ((sm = smbShareRe.exec(L)) !== null && sm[1] !== "Sharename") {
+    addIntel("shares", sm[1], "SMB · " + sm[2], src, {silent:true});
+  }
+  // nfs exports: "/srv/foo  *(rw,sync,no_subtree_check)"
+  if ((m = L.match(/^(\/\S+)\s+\*\([\w,]+\)/m)))                              addIntel("shares", m[1], "NFS export", src, {silent:true});
+
+  // Web tech
+  if ((m = L.match(/\bApache\/(\d+\.\d+(?:\.\d+)?)/i)))                       addIntel("web", "apache", m[1], src, {silent:true});
+  if ((m = L.match(/\bnginx\/(\d+\.\d+(?:\.\d+)?)/i)))                        addIntel("web", "nginx", m[1], src, {silent:true});
+  if ((m = L.match(/\bMicrosoft-IIS\/(\d+\.\d+)/i)))                          addIntel("web", "iis",    m[1], src, {silent:true});
+  if ((m = L.match(/\bPHP\/(\d+\.\d+(?:\.\d+)?)/i)))                          addIntel("web", "php",    m[1], src, {silent:true});
+  if ((m = L.match(/\b(WordPress|Drupal|Joomla|Tomcat|Jenkins|GitLab|phpMyAdmin)\b[^\n]{0,30}?(\d+\.\d+(?:\.\d+)?)?/i)))
+                                                                              addIntel("web", m[1].toLowerCase(), (m[2]||"present"), src, {silent:true});
+  // Discovered web paths (gobuster, ffuf): " /admin     (Status: 200) [Size: 1234]"
+  const pathRe = /(\/[A-Za-z0-9._\/\-]{2,80})\s+\(Status:\s*(\d{3})\)/g;
+  let pmm; while ((pmm = pathRe.exec(L)) !== null) {
+    const code = pmm[2];
+    const level = code === "200" ? "good" : code === "403" ? "warn" : code === "401" ? "warn" : "";
+    addIntel("web", pmm[1], "HTTP " + code + (level?" ("+level+")":""), src, {silent:true});
+  }
+
+  // Vulnerabilities / CVEs / explicit exploit hints
+  const cves = L.match(/\bCVE-\d{4}-\d{4,7}\b/gi);
+  if (cves) for (const c of cves) addIntel("vulns", c.toUpperCase(), "referenced in telemetry", src, {silent:true});
+  if (/\beternalblue\b/i.test(L))      addIntel("vulns", "EternalBlue (MS17-010)", "candidate exploit referenced", src, {silent:true});
+  if (/\bms17-010\b/i.test(L))         addIntel("vulns", "MS17-010", "candidate exploit referenced", src, {silent:true});
+  if (/\bshellshock\b/i.test(L))       addIntel("vulns", "Shellshock", "candidate exploit referenced", src, {silent:true});
+  if (/\bdirty\s*cow\b/i.test(L))      addIntel("vulns", "DirtyCow", "candidate exploit referenced", src, {silent:true});
+  if (/\bsudo[^\n]{0,40}\bversion\b[^\n]{0,60}\b(1\.8\.[0-9]+|1\.9\.[0-5])/i.test(L))
+                                       addIntel("vulns", "sudo (old)", "old sudo version observed — check CVE-2021-3156", src, {silent:true});
+}
+
+// hook into the existing ingestion path
+const _origParseLogLine = parseLogLine;
+parseLogLine = function(line) {
+  _origParseLogLine(line);
+  extractIntelFromLine(line, state.activeTool ? state.activeTool : "log");
+};
+const _origRenderEvent = renderEvent;
+renderEvent = function(ev) {
+  _origRenderEvent(ev);
+  if (!ev) return;
+  if (ev.type === "tool_result" && ev.text) {
+    String(ev.text).split("\n").forEach(ln => extractIntelFromLine(ln, ev.tool || "result"));
+  } else if (ev.type === "assistant_text" && ev.text) {
+    // Claude's prose often summarises findings — scan it too, but conservatively
+    extractIntelFromLine(stripMeta(ev.text), "claude");
+  }
+};
+
+// form: pin a note
+$("#intel-form").addEventListener("submit", (ev) => {
+  ev.preventDefault();
+  const fd = new FormData(ev.target);
+  const obj = Object.fromEntries(fd.entries());
+  if (!obj.key || !obj.value) return;
+  addIntel(obj.category, obj.key, obj.value, obj.source || "manual");
+  ev.target.reset();
+  $("#intel-form select[name=category]").value = "notes";
+  toast("Intel pinned");
+});
+$("#btn-intel-clear").addEventListener("click", () => {
+  if (Object.keys(state.intel).length === 0) return;
+  if (confirm("Clear all collected intel? (notes you pinned will also be removed)")) clearIntel();
+});
+
+loadIntel();
+updateIntelBadge();
+
+/* ===================================================================
+   CVE WATCHLIST — auto-detect CVE IDs + NVD lookup
+   =================================================================== */
+state.cves = {};        // CVE-ID → { id, summary, severity, score, vector, products, trail[], ts, status }
+state.cveFetching = new Set();
+const CVE_RE = /\bCVE-\d{4}-\d{4,7}\b/gi;
+
+function loadCves() {
+  try {
+    const raw = localStorage.getItem("thm-cves");
+    if (raw) state.cves = JSON.parse(raw) || {};
+  } catch { state.cves = {}; }
+}
+function saveCves() {
+  try { localStorage.setItem("thm-cves", JSON.stringify(state.cves)); } catch {}
+}
+function updateCveBadge() {
+  const n = Object.keys(state.cves).length;
+  $("#cve-badge").textContent = n;
+  $("#cve-count").textContent = n + " CVE" + (n===1?"":"s");
+}
+
+function sevClass(score) {
+  if (score == null || Number.isNaN(score)) return "loading";
+  if (score >= 9.0) return "critical";
+  if (score >= 7.0) return "high";
+  if (score >= 4.0) return "medium";
+  return "low";
+}
+function sevLabel(score) {
+  if (score == null || Number.isNaN(score)) return "—";
+  if (score >= 9.0) return "Critical";
+  if (score >= 7.0) return "High";
+  if (score >= 4.0) return "Medium";
+  return "Low";
+}
+
+async function fetchCveFromNVD(cveId) {
+  if (state.cveFetching.has(cveId)) return;
+  state.cveFetching.add(cveId);
+  const url = `https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=${encodeURIComponent(cveId)}`;
+  try {
+    const r = await fetch(url);
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    const data = await r.json();
+    const item = data.vulnerabilities && data.vulnerabilities[0] && data.vulnerabilities[0].cve;
+    const rec = state.cves[cveId] || { id: cveId, trail: [], ts: Date.now() };
+    rec.status = "ok";
+    rec.ts = Date.now();
+    if (item) {
+      const descs = item.descriptions || [];
+      const en = descs.find(d => d.lang === "en") || descs[0];
+      rec.summary = en ? en.value : "";
+      // CVSS — prefer v3.1, then v3.0, then v2
+      const metrics = item.metrics || {};
+      let cvss = null, vector = "", source = "";
+      const tries = [
+        ["cvssMetricV31", "CVSS3.1"],
+        ["cvssMetricV30", "CVSS3.0"],
+        ["cvssMetricV2",  "CVSS2"],
+      ];
+      for (const [k, lbl] of tries) {
+        if (metrics[k] && metrics[k][0] && metrics[k][0].cvssData) {
+          cvss = metrics[k][0].cvssData.baseScore;
+          vector = metrics[k][0].cvssData.vectorString || "";
+          source = lbl;
+          break;
+        }
+      }
+      rec.score = cvss;
+      rec.vector = vector;
+      rec.cvss_source = source;
+      // affected products (configurations are deep; just pull CPE names)
+      const products = new Set();
+      const cfgs = item.configurations || [];
+      for (const cfg of cfgs) {
+        for (const node of (cfg.nodes || [])) {
+          for (const m of (node.cpeMatch || [])) {
+            // example: cpe:2.3:a:sudo_project:sudo:1.8.31:*:*:*:*:*:*:*
+            const parts = (m.criteria || "").split(":");
+            if (parts.length >= 6) {
+              const vendor = parts[3], product = parts[4], ver = parts[5];
+              if (vendor && product) products.add(`${vendor}/${product}${ver && ver!=="*"?" @ "+ver:""}`);
+            }
+          }
+        }
+      }
+      rec.products = Array.from(products).slice(0, 12);
+      rec.published = item.published || "";
+    } else {
+      rec.summary = "(no NVD record)";
+      rec.score = null;
+    }
+    state.cves[cveId] = rec;
+    saveCves();
+    updateCveBadge();
+    if (state.view === "cves") renderCves();
+  } catch (e) {
+    const rec = state.cves[cveId] || { id: cveId, trail: [], ts: Date.now() };
+    rec.status = "error";
+    rec.summary = "lookup failed: " + (e.message || e);
+    state.cves[cveId] = rec;
+    saveCves();
+    if (state.view === "cves") renderCves();
+  } finally {
+    state.cveFetching.delete(cveId);
+  }
+}
+
+function noteCve(cveId, sourceContext) {
+  cveId = cveId.toUpperCase();
+  let rec = state.cves[cveId];
+  const fresh = !rec;
+  if (!rec) {
+    rec = { id: cveId, summary: "looking up…", status: "loading", trail: [], ts: Date.now() };
+    state.cves[cveId] = rec;
+    pushLine({ src:"OPS", msg: `⚠ CVE detected: ${cveId} — querying NVD…`, level:"warn" });
+    fetchCveFromNVD(cveId);
+  }
+  if (sourceContext) {
+    const trim = String(sourceContext).slice(0, 140).trim();
+    if (trim && !rec.trail.includes(trim)) rec.trail.push(trim);
+    if (rec.trail.length > 6) rec.trail = rec.trail.slice(-6);
+  }
+  rec.fresh = fresh;
+  if (fresh) setTimeout(() => { rec.fresh = false; if (state.view === "cves") renderCves(); }, 2000);
+  saveCves();
+  updateCveBadge();
+  if (state.view === "cves") renderCves();
+}
+
+function renderCves() {
+  const body = $("#cve-body");
+  body.innerHTML = "";
+  const list = Object.values(state.cves);
+  if (!list.length) {
+    body.appendChild(el("div", { class:"h-label", style:"color:var(--fg-dim);" },
+      "No CVEs surfaced yet. The HUD watches the telemetry for CVE-IDs and looks each one up automatically from NVD."));
+    return;
+  }
+  // sort by severity desc, then by id desc
+  list.sort((a,b) => {
+    const sa = (a.score==null) ? -1 : a.score;
+    const sb = (b.score==null) ? -1 : b.score;
+    if (sa !== sb) return sb - sa;
+    return (b.id || "").localeCompare(a.id || "");
+  });
+  for (const c of list) {
+    const sc = sevClass(c.score);
+    const card = el("div", { class: "cve-card sev-" + sc + (c.fresh?" fresh":"") });
+    const head = el("div", { class: "cve-head" },
+      el("span", { class: "cve-id" }, c.id),
+      el("span", { class: "cve-sev-badge" }, sevLabel(c.score)),
+      el("span", {}, ""),
+      el("span", { class: "cve-score" }, c.score!=null ? c.score.toFixed(1) : (c.status==="loading"?"…":"—")),
+      el("div", { class: "cve-actions" },
+        el("button", { onclick: () => window.open("https://nvd.nist.gov/vuln/detail/" + c.id, "_blank") }, "NVD"),
+        el("button", { onclick: () => { navigator.clipboard.writeText(c.id); toast("Copied " + c.id); } }, "CP"),
+        el("button", { class: "del", onclick: () => {
+          delete state.cves[c.id]; saveCves(); updateCveBadge(); renderCves();
+        } }, "✕")
+      )
+    );
+    card.appendChild(head);
+    const cbody = el("div", { class: "cve-body" },
+      el("div", { class: "cve-summary" }, c.summary || "—")
+    );
+    if (c.vector || c.cvss_source || c.published) {
+      const meta = el("div", { class: "cve-meta" });
+      if (c.cvss_source) meta.appendChild(el("span", {}, "scoring · ", el("span", { class:"v" }, c.cvss_source)));
+      if (c.vector)      meta.appendChild(el("span", {}, "vector · ",  el("span", { class:"cve-vec" }, c.vector)));
+      if (c.published)   meta.appendChild(el("span", {}, "published · ", el("span", { class:"v" }, (c.published || "").slice(0,10))));
+      cbody.appendChild(meta);
+    }
+    if (c.products && c.products.length) {
+      const ps = el("div", { class: "cve-products" });
+      for (const p of c.products) ps.appendChild(el("span", { class: "chip" }, p));
+      cbody.appendChild(ps);
+    }
+    if (c.trail && c.trail.length) {
+      const tr = el("div", { class: "cve-trail" }, "Seen in: " + c.trail.join(" │ "));
+      cbody.appendChild(tr);
+    }
+    card.appendChild(cbody);
+    body.appendChild(card);
+  }
+}
+
+// Hook CVE detection into the same extractor that intel uses
+const _origExtractIntel = extractIntelFromLine;
+extractIntelFromLine = function(line, sourceHint) {
+  _origExtractIntel(line, sourceHint);
+  if (!line) return;
+  const matches = String(line).match(CVE_RE);
+  if (!matches) return;
+  const uniq = Array.from(new Set(matches.map(s => s.toUpperCase())));
+  for (const id of uniq) {
+    noteCve(id, line);
+  }
+};
+
+$("#cve-form").addEventListener("submit", (ev) => {
+  ev.preventDefault();
+  const fd = new FormData(ev.target);
+  const id = String(fd.get("cve") || "").trim().toUpperCase();
+  if (!/^CVE-\d{4}-\d{4,7}$/.test(id)) {
+    toast("Enter a valid CVE ID (e.g. CVE-2021-3156)", "bad");
+    return;
+  }
+  noteCve(id, "manual lookup");
+  ev.target.reset();
+  toast("Looking up " + id + "…");
+});
+$("#btn-cve-clear").addEventListener("click", () => {
+  if (Object.keys(state.cves).length === 0) return;
+  if (confirm("Clear all CVE entries?")) {
+    state.cves = {}; saveCves(); updateCveBadge(); renderCves();
+  }
+});
+
+loadCves();
+updateCveBadge();
+// re-fetch any CVE that's missing a score (e.g. saved during a previous fetch error)
+for (const id of Object.keys(state.cves)) {
+  const c = state.cves[id];
+  if (c.score == null && c.status !== "loading") fetchCveFromNVD(id);
+}
 
 /* ===================================================================
    BOOT — initial render + polling cadence
