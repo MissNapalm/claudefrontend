@@ -26,6 +26,7 @@
     --accent-2:  #d4a857;
     --good:      #4ea877;
     --bad:       #c25656;
+    --crit:      #e85d75;
     --line:      #1b2530;
     --line-2:    #283341;
   }
@@ -39,22 +40,39 @@
     --accent-2:  #1e40af;
     --good:      #166534;
     --bad:       #991b1b;
+    --crit:      #7f1d1d;
     --line:      #b4b0a8;
     --line-2:    #a09b92;
   }
   ::selection { background: var(--accent); color: var(--bg); }
 
+  /* ------------------ APP GRID ------------------
+     row 1: tabs (36)
+     row 2: main (left targets | center pane | right detail)
+     row 3: bottom telemetry drawer (resizable, default 160)
+     row 4: foot (24)
+  ----------------------------------------------- */
   #app {
     display: grid;
-    grid-template-rows: 36px 1fr 24px;
+    grid-template-rows: 36px 1fr 6px 180px 24px;
+    grid-template-columns: 220px 1fr 280px;
     height: 100vh;
   }
+  #tabs    { grid-row: 1; grid-column: 1 / -1; }
+  #left    { grid-row: 2; grid-column: 1; }
+  #center  { grid-row: 2; grid-column: 2; }
+  #right   { grid-row: 2; grid-column: 3; }
+  #splitter{ grid-row: 3; grid-column: 1 / -1; }
+  #drawer  { grid-row: 4; grid-column: 1 / -1; }
+  #foot    { grid-row: 5; grid-column: 1 / -1; }
 
+  /* ------------------ TABS ------------------ */
   #tabs {
     display: flex;
     align-items: stretch;
     border-bottom: 1px solid var(--line);
     background: var(--bg-2);
+    overflow-x: auto;
   }
   #brand {
     display: flex; align-items: center;
@@ -64,27 +82,30 @@
     font-weight: 700;
     font-size: 11px;
     border-right: 1px solid var(--line);
+    flex-shrink: 0;
   }
   #brand .dot {
     width: 7px; height: 7px;
     background: var(--accent);
     border-radius: 50%;
     margin-right: 8px;
+    box-shadow: 0 0 6px var(--accent);
   }
   .tab {
     background: transparent;
     color: var(--fg-dim);
     border: none;
     border-right: 1px solid var(--line);
-    padding: 0 16px;
+    padding: 0 12px;
     font-family: inherit;
     font-size: 10px;
-    letter-spacing: 0.18em;
+    letter-spacing: 0.15em;
     text-transform: uppercase;
     cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
+    flex-shrink: 0;
   }
   .tab:hover { color: var(--fg); }
   .tab.active {
@@ -93,68 +114,261 @@
     box-shadow: inset 0 2px 0 var(--accent);
   }
   .tab .badge {
-    padding: 1px 6px;
+    padding: 1px 5px;
     border: 1px solid var(--line-2);
     background: var(--bg);
     color: var(--accent-2);
-    font-size: 10px;
+    font-size: 9px;
     letter-spacing: 0.05em;
     font-weight: 600;
+    min-width: 16px;
+    text-align: center;
   }
-  #right { flex: 1; display: flex; align-items: center; justify-content: flex-end; padding: 0 14px; gap: 12px; }
+  .tab .badge.crit { color: var(--crit); border-color: var(--crit); }
+  #tabs-right {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 0 12px;
+    gap: 10px;
+  }
+  #search {
+    background: var(--bg);
+    color: var(--fg);
+    border: 1px solid var(--line-2);
+    padding: 3px 8px;
+    font-family: inherit;
+    font-size: 11px;
+    width: 200px;
+  }
+  #search:focus { outline: none; border-color: var(--accent); }
   #status, #count {
     color: var(--fg-dim);
     font-size: 10px;
     letter-spacing: 0.18em;
     text-transform: uppercase;
   }
-  #clear {
+  .btn-mini {
     background: transparent;
     color: var(--fg-dim);
     border: 1px solid var(--line-2);
-    border-radius: 1px;
-    padding: 3px 10px;
+    padding: 3px 9px;
     font-family: inherit;
     font-size: 10px;
     letter-spacing: 0.15em;
     text-transform: uppercase;
     cursor: pointer;
   }
-  #clear:hover { color: var(--fg); border-color: var(--fg); }
+  .btn-mini:hover { color: var(--fg); border-color: var(--fg); }
 
-  .pane {
+  /* ------------------ LEFT TARGETS ------------------ */
+  #left {
+    background: var(--bg-2);
+    border-right: 1px solid var(--line);
     overflow-y: auto;
     overflow-x: hidden;
-    padding: 8px 14px;
+  }
+  .left-head {
+    padding: 8px 12px;
+    color: var(--fg-dim);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .host {
+    border-bottom: 1px dotted var(--line);
+    padding: 6px 12px;
+    cursor: pointer;
+    animation: slide 0.22s ease-out;
+  }
+  .host:hover { background: var(--bg-3); }
+  .host.active { background: var(--bg-3); box-shadow: inset 3px 0 0 var(--accent); }
+  .host-ip {
+    color: var(--accent);
+    font-weight: 600;
+    font-size: 12px;
+    word-break: break-all;
+  }
+  .host-meta {
+    color: var(--fg-dim);
+    font-size: 10px;
+    margin-top: 2px;
+    word-break: break-word;
+  }
+  .host-counts {
+    display: flex;
+    gap: 6px;
+    margin-top: 4px;
+    flex-wrap: wrap;
+  }
+  .host-counts .pill {
+    color: var(--fg-dim);
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .host-counts .pill b { color: var(--fg); font-weight: 600; }
+
+  /* ------------------ CENTER PANES ------------------ */
+  #center { overflow: hidden; display: flex; flex-direction: column; min-width: 0; }
+  .pane-header {
+    padding: 6px 14px;
+    border-bottom: 1px solid var(--line);
+    background: var(--bg-2);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+  .pane-header .title {
+    color: var(--accent);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    font-weight: 700;
+    font-size: 11px;
+  }
+  .pane-header .subtitle {
+    color: var(--fg-dim);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-left: auto;
+  }
+  .pane {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 6px 14px;
     background: var(--bg);
     display: none;
   }
   .pane.active { display: block; }
-  .pane::-webkit-scrollbar { width: 8px; }
-  .pane::-webkit-scrollbar-track { background: var(--bg-2); }
-  .pane::-webkit-scrollbar-thumb { background: var(--line-2); border-radius: 1px; }
+  .pane::-webkit-scrollbar,
+  #left::-webkit-scrollbar,
+  #right::-webkit-scrollbar,
+  #pane-stream::-webkit-scrollbar { width: 8px; }
+  .pane::-webkit-scrollbar-track,
+  #left::-webkit-scrollbar-track,
+  #right::-webkit-scrollbar-track,
+  #pane-stream::-webkit-scrollbar-track { background: var(--bg-2); }
+  .pane::-webkit-scrollbar-thumb,
+  #left::-webkit-scrollbar-thumb,
+  #right::-webkit-scrollbar-thumb,
+  #pane-stream::-webkit-scrollbar-thumb { background: var(--line-2); }
 
-  #pane-stream { padding: 6px 14px; }
+  /* ------------------ RIGHT DETAIL ------------------ */
+  #right {
+    background: var(--bg-2);
+    border-left: 1px solid var(--line);
+    overflow-y: auto;
+    padding: 8px 12px;
+  }
+  .detail-empty {
+    color: var(--fg-dim);
+    font-size: 11px;
+    text-align: center;
+    padding: 24px 8px;
+    line-height: 1.6;
+  }
+  .detail-card { animation: slide 0.22s ease-out; }
+  .detail-title {
+    color: var(--accent);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    font-weight: 700;
+    font-size: 10px;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--line);
+  }
+  .detail-row {
+    display: grid;
+    grid-template-columns: 70px 1fr;
+    gap: 8px;
+    padding: 3px 0;
+    align-items: baseline;
+  }
+  .detail-row .k {
+    color: var(--fg-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 9px;
+  }
+  .detail-row .v {
+    color: var(--fg);
+    word-break: break-word;
+    font-family: ui-monospace, monospace;
+    font-size: 11px;
+  }
+  .detail-ctx {
+    margin-top: 8px;
+    padding: 6px 8px;
+    background: var(--bg);
+    color: var(--fg-dim);
+    font-size: 10px;
+    font-style: italic;
+    border-left: 2px solid var(--line-2);
+    word-break: break-all;
+    max-height: 140px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+  }
+
+  /* ------------------ SPLITTER ------------------ */
+  #splitter {
+    background: var(--bg-2);
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    cursor: ns-resize;
+    position: relative;
+  }
+  #splitter:hover { background: var(--line); }
+  #splitter::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 32px;
+    height: 1px;
+    background: var(--fg-dim);
+  }
+
+  /* ------------------ DRAWER (telemetry) ------------------ */
+  #drawer {
+    background: var(--bg);
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 4px 14px;
+  }
+  #drawer::-webkit-scrollbar { width: 8px; }
+  #drawer::-webkit-scrollbar-track { background: var(--bg-2); }
+  #drawer::-webkit-scrollbar-thumb { background: var(--line-2); }
   .line {
     display: grid;
-    grid-template-columns: 78px 70px 1fr;
+    grid-template-columns: 70px 64px 1fr;
     gap: 10px;
-    padding: 2px 0;
+    padding: 1px 0;
     align-items: baseline;
-    animation: slide 0.22s ease-out;
+    animation: slide 0.18s ease-out;
   }
   @keyframes slide {
-    from { opacity: 0; transform: translateX(-10px); }
+    from { opacity: 0; transform: translateX(-8px); }
     to   { opacity: 1; transform: translateX(0); }
   }
   .ts { color: var(--fg-dim); font-size: 10px; }
   .src {
     text-align: center;
-    font-size: 10px;
+    font-size: 9px;
     padding: 1px 4px;
     border: 1px solid var(--line-2);
     color: var(--fg-dim);
-    letter-spacing: 0.1em;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
   }
   .src-ops    { color: var(--accent);   border-color: var(--accent); }
@@ -162,76 +376,28 @@
   .src-you    { color: var(--fg);       border-color: var(--fg); }
   .src-tool   { color: var(--accent);   border-color: var(--accent); }
   .src-result { color: var(--good);     border-color: var(--good); }
-  .msg { color: var(--fg); white-space: pre-wrap; word-break: break-word; }
+  .src-loot   { color: var(--accent-2); border-color: var(--accent-2); }
+  .msg { color: var(--fg); white-space: pre-wrap; word-break: break-word; font-size: 11px; }
 
-  /* credentials */
+  /* ------------------ DATA ROWS ------------------ */
   .empty {
     color: var(--fg-dim);
     font-size: 11px;
     letter-spacing: 0.05em;
     padding: 14px 4px;
+    text-align: center;
   }
-  .cred {
-    border: 1px solid var(--line);
-    background: var(--bg-2);
-    padding: 8px 12px;
-    margin-bottom: 6px;
-    animation: slide 0.22s ease-out;
-  }
-  .cred-row {
-    display: grid;
-    grid-template-columns: 70px 1fr auto;
-    gap: 10px;
-    align-items: baseline;
-    padding: 2px 0;
-  }
-  .cred-row .k {
-    color: var(--fg-dim);
-    text-transform: uppercase;
-    letter-spacing: 0.15em;
-    font-size: 10px;
-  }
-  .cred-row .v {
-    color: var(--fg);
-    font-family: ui-monospace, monospace;
-    word-break: break-all;
-  }
-  .cred-row .v.pw { color: var(--good); font-weight: 600; }
-  .cred-row .copy {
-    background: transparent;
-    color: var(--fg-dim);
-    border: 1px solid var(--line-2);
-    padding: 1px 8px;
-    font-family: inherit;
-    font-size: 10px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    cursor: pointer;
-  }
-  .cred-row .copy:hover { color: var(--accent); border-color: var(--accent); }
-  .cred-meta {
-    margin-top: 6px;
-    padding-top: 6px;
-    border-top: 1px dotted var(--line);
-    color: var(--fg-dim);
-    font-size: 10px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    display: flex;
-    justify-content: space-between;
-    gap: 12px;
-  }
-  .cred-meta .v { color: var(--fg); text-transform: none; letter-spacing: 0; font-family: ui-monospace, monospace; }
-
-  /* nmap + directories — compact tabular rows */
   .row {
     display: grid;
     gap: 12px;
     align-items: baseline;
     padding: 5px 8px;
     border-bottom: 1px dotted var(--line);
+    cursor: pointer;
     animation: slide 0.22s ease-out;
   }
+  .row:hover { background: var(--bg-2); }
+  .row.selected { background: var(--bg-3); box-shadow: inset 3px 0 0 var(--accent); }
   .row .k {
     color: var(--fg);
     font-family: ui-monospace, monospace;
@@ -241,6 +407,7 @@
   .row .v.good { color: var(--good); }
   .row .v.warn { color: var(--accent-2); }
   .row .v.bad  { color: var(--bad);  }
+  .row .v.crit { color: var(--crit); font-weight: 600; }
   .row .meta {
     color: var(--fg-dim);
     font-size: 10px;
@@ -248,7 +415,25 @@
     text-transform: uppercase;
     text-align: right;
   }
-  .nmap-row { grid-template-columns: 90px 130px 1fr auto; }
+  .row-head {
+    display: grid;
+    gap: 12px;
+    padding: 4px 8px;
+    color: var(--fg-dim);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--line-2);
+    margin-bottom: 2px;
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 1;
+  }
+
+  /* per-table layouts */
+  .hosts-row { grid-template-columns: 130px 1fr 1fr 70px; }
+  .nmap-row  { grid-template-columns: 90px 130px 1fr auto; }
   .nmap-row .port {
     color: var(--good);
     font-weight: 700;
@@ -261,25 +446,41 @@
     letter-spacing: 0.08em;
     font-size: 11px;
   }
-  .dirs-row { grid-template-columns: minmax(260px, 1.5fr) 110px 1fr auto; }
+  .dirs-row { grid-template-columns: minmax(220px, 1.5fr) 100px 1fr 80px auto; }
   .dirs-row .size {
     color: var(--fg-dim);
     font-family: ui-monospace, monospace;
     font-size: 11px;
     text-align: right;
   }
-  .row-head {
-    display: grid;
-    gap: 12px;
-    padding: 4px 8px;
-    color: var(--fg-dim);
-    font-size: 10px;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    border-bottom: 1px solid var(--line-2);
-    margin-bottom: 4px;
-  }
+  .creds-row { grid-template-columns: 1fr 1fr 110px auto; }
+  .creds-row .v.pw { color: var(--good); font-weight: 600; }
+  .cves-row  { grid-template-columns: 160px 60px 1fr 80px auto; }
+  .cves-row .cve-id { color: var(--accent); font-weight: 600; font-family: ui-monospace, monospace; }
+  .cves-row .cvss   { font-weight: 700; text-align: center; }
+  .vulns-row { grid-template-columns: 90px 90px 1fr auto; }
+  .hash-row  { grid-template-columns: 110px 90px 1fr auto; }
+  .share-row { grid-template-columns: 160px 80px 1fr auto; }
+  .user-row  { grid-template-columns: 1fr 1fr auto; }
+  .sub-row   { grid-template-columns: 1fr 130px auto; }
+  .loot-row  { grid-template-columns: 110px minmax(180px, 1fr) 1fr auto; }
+  .shell-row { grid-template-columns: 130px 100px 80px 1fr auto; }
+  .note-row  { grid-template-columns: 130px 1fr auto; }
 
+  .copy {
+    background: transparent;
+    color: var(--fg-dim);
+    border: 1px solid var(--line-2);
+    padding: 1px 8px;
+    font-family: inherit;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+  .copy:hover { color: var(--accent); border-color: var(--accent); }
+
+  /* ------------------ FOOT ------------------ */
   #foot {
     display: flex;
     align-items: center;
@@ -291,18 +492,18 @@
     font-size: 10px;
     letter-spacing: 0.1em;
   }
-  #theme {
-    background: transparent;
-    color: var(--fg-dim);
-    border: 1px solid var(--line-2);
-    padding: 2px 10px;
-    font-family: inherit;
-    font-size: 10px;
-    letter-spacing: 0.15em;
+  #foot .spacer { flex: 1; }
+  #foot .filter-tag {
+    background: var(--bg-3);
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    padding: 1px 8px;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
+    font-size: 10px;
     cursor: pointer;
   }
-  #theme:hover { color: var(--accent); border-color: var(--accent); }
+  #foot .filter-tag:hover { color: var(--bg); background: var(--accent); }
 </style>
 </head>
 <body data-theme="tactical">
@@ -311,25 +512,73 @@
 
   <div id="tabs">
     <div id="brand"><span class="dot"></span>THM/OPS</div>
-    <button class="tab active" data-view="stream">Telemetry</button>
-    <button class="tab" data-view="nmap">Nmap <span class="badge" id="badge-nmap">0</span></button>
-    <button class="tab" data-view="dirs">Directories <span class="badge" id="badge-dirs">0</span></button>
-    <button class="tab" data-view="creds">Credentials <span class="badge" id="badge-creds">0</span></button>
-    <div id="right">
+    <button class="tab" data-view="hosts">Hosts <span class="badge" id="b-hosts">0</span></button>
+    <button class="tab active" data-view="nmap">Ports <span class="badge" id="b-nmap">0</span></button>
+    <button class="tab" data-view="dirs">Dirs <span class="badge" id="b-dirs">0</span></button>
+    <button class="tab" data-view="subs">Subs <span class="badge" id="b-subs">0</span></button>
+    <button class="tab" data-view="users">Users <span class="badge" id="b-users">0</span></button>
+    <button class="tab" data-view="creds">Creds <span class="badge" id="b-creds">0</span></button>
+    <button class="tab" data-view="hashes">Hashes <span class="badge" id="b-hashes">0</span></button>
+    <button class="tab" data-view="cves">CVEs <span class="badge crit" id="b-cves">0</span></button>
+    <button class="tab" data-view="vulns">Vulns <span class="badge crit" id="b-vulns">0</span></button>
+    <button class="tab" data-view="shares">Shares <span class="badge" id="b-shares">0</span></button>
+    <button class="tab" data-view="shells">Shells <span class="badge" id="b-shells">0</span></button>
+    <button class="tab" data-view="loot">Loot <span class="badge" id="b-loot">0</span></button>
+    <button class="tab" data-view="notes">Notes <span class="badge" id="b-notes">0</span></button>
+    <div id="tabs-right">
+      <input id="search" type="text" placeholder="filter (host, text)…" />
       <span id="status">standby</span>
-      <span id="count">0 lines</span>
-      <button id="clear" title="Clear telemetry">Clear</button>
+      <button id="export" class="btn-mini" title="Export session as JSON">Export</button>
+      <button id="clear" class="btn-mini" title="Clear all data">Clear</button>
     </div>
   </div>
 
-  <div id="pane-stream" class="pane active"></div>
-  <div id="pane-nmap"   class="pane"></div>
-  <div id="pane-dirs"   class="pane"></div>
-  <div id="pane-creds"  class="pane"></div>
+  <div id="left">
+    <div class="left-head">
+      <span>Targets</span>
+      <span id="host-count">0</span>
+    </div>
+    <div id="hosts-list"></div>
+  </div>
+
+  <div id="center">
+    <div class="pane-header">
+      <span class="title" id="pane-title">Ports</span>
+      <span class="subtitle" id="pane-subtitle">awaiting telemetry</span>
+    </div>
+    <div id="pane-hosts"  class="pane"></div>
+    <div id="pane-nmap"   class="pane active"></div>
+    <div id="pane-dirs"   class="pane"></div>
+    <div id="pane-subs"   class="pane"></div>
+    <div id="pane-users"  class="pane"></div>
+    <div id="pane-creds"  class="pane"></div>
+    <div id="pane-hashes" class="pane"></div>
+    <div id="pane-cves"   class="pane"></div>
+    <div id="pane-vulns"  class="pane"></div>
+    <div id="pane-shares" class="pane"></div>
+    <div id="pane-shells" class="pane"></div>
+    <div id="pane-loot"   class="pane"></div>
+    <div id="pane-notes"  class="pane"></div>
+  </div>
+
+  <div id="right">
+    <div id="detail" class="detail-empty">
+      Select a row to view details.<br><br>
+      <span style="font-size:10px;letter-spacing:0.1em;">CLICK ANY ROW · SHOWS RAW CONTEXT</span>
+    </div>
+  </div>
+
+  <div id="splitter" title="Drag to resize telemetry drawer"></div>
+
+  <div id="drawer"></div>
 
   <div id="foot">
-    <button id="theme" title="Toggle light/dark">◐ <span id="theme-label">Tactical</span></button>
+    <button id="theme" class="btn-mini" title="Toggle light/dark">◐ <span id="theme-label">Tactical</span></button>
     <span id="src-label">awaiting telemetry…</span>
+    <span class="spacer"></span>
+    <span id="loot-label">loot: idle</span>
+    <span id="count">0 lines</span>
+    <span id="host-filter" style="display:none"></span>
   </div>
 
 </div>
@@ -345,10 +594,29 @@ const state = {
   eventOffset: 0,
   count:       0,
   lastFresh:   0,
-  view:        "stream",
+  view:        "nmap",
+  hostFilter:  null,      // when set, all panes filter to this host
+  selected:    null,      // currently selected row's data, for right pane
+
+  // legacy ops.jsonl-driven state (kept for backwards compat)
   creds:       JSON.parse(localStorage.getItem("thm-creds") || "{}"),
   ports:       JSON.parse(localStorage.getItem("thm-ports") || "{}"),
   dirs:        JSON.parse(localStorage.getItem("thm-dirs")  || "{}"),
+
+  // loot.jsonl-driven state (the new pipeline)
+  hosts:       JSON.parse(localStorage.getItem("thm-hosts")  || "{}"),
+  users:       JSON.parse(localStorage.getItem("thm-users")  || "{}"),
+  hashes:      JSON.parse(localStorage.getItem("thm-hashes") || "{}"),
+  cves:        JSON.parse(localStorage.getItem("thm-cves")   || "{}"),
+  vulns:       JSON.parse(localStorage.getItem("thm-vulns")  || "{}"),
+  shares:      JSON.parse(localStorage.getItem("thm-shares") || "{}"),
+  subs:        JSON.parse(localStorage.getItem("thm-subs")   || "{}"),
+  loot:        JSON.parse(localStorage.getItem("thm-loot")   || "{}"),
+  shells:      JSON.parse(localStorage.getItem("thm-shells") || "{}"),
+  notes:       JSON.parse(localStorage.getItem("thm-notes")  || "{}"),
+
+  // loot.jsonl tail bookkeeping
+  lootFiles:   {},        // path → { offset, lastSeen }
 };
 
 const $  = (s) => document.querySelector(s);
@@ -370,6 +638,7 @@ function pad(n) { return String(n).padStart(2, "0"); }
 function nowHHMMSS(d = new Date()) {
   return pad(d.getHours()) + ":" + pad(d.getMinutes()) + ":" + pad(d.getSeconds());
 }
+function persist(key, obj) { localStorage.setItem("thm-" + key, JSON.stringify(obj)); }
 
 // ---------- THEME ----------
 function applyTheme(t) {
@@ -389,12 +658,25 @@ $$(".tab").forEach(b => b.addEventListener("click", () => {
   state.view = b.dataset.view;
   $$(".pane").forEach(p => p.classList.remove("active"));
   $("#pane-" + state.view).classList.add("active");
-  if (state.view === "creds") renderCreds();
-  if (state.view === "nmap")  renderPorts();
-  if (state.view === "dirs")  renderDirs();
+  $("#pane-title").textContent = b.textContent.replace(/\d+$/, "").trim();
+  renderAll();
 }));
 
-// ---------- META STRIPPER ----------
+// ---------- SPLITTER (drawer resize) ----------
+(function () {
+  const sp = $("#splitter");
+  const app = $("#app");
+  let dragging = false;
+  sp.addEventListener("mousedown", (e) => { dragging = true; e.preventDefault(); document.body.style.userSelect = "none"; });
+  window.addEventListener("mouseup", () => { dragging = false; document.body.style.userSelect = ""; });
+  window.addEventListener("mousemove", (e) => {
+    if (!dragging) return;
+    const h = Math.max(60, Math.min(window.innerHeight - 200, window.innerHeight - e.clientY - 24));
+    app.style.gridTemplateRows = "36px 1fr 6px " + h + "px 24px";
+  });
+})();
+
+// ---------- META STRIPPER (for telemetry text) ----------
 function stripMeta(s) {
   if (typeof s !== "string") return "";
   return s
@@ -408,9 +690,9 @@ function stripMeta(s) {
     .trim();
 }
 
-// ---------- TELEMETRY PANE ----------
-const stream = $("#pane-stream");
-function nearBottom() { return (stream.scrollHeight - stream.scrollTop - stream.clientHeight) < 60; }
+// ---------- DRAWER (telemetry stream) ----------
+const drawer = $("#drawer");
+function nearBottom() { return (drawer.scrollHeight - drawer.scrollTop - drawer.clientHeight) < 60; }
 function pushLine(src, msg) {
   if (!msg) return;
   const stick = nearBottom();
@@ -420,308 +702,680 @@ function pushLine(src, msg) {
     el("span", { class: "src src-" + srcUp.toLowerCase() }, srcUp),
     el("span", { class: "msg" }, String(msg))
   );
-  stream.appendChild(line);
+  drawer.appendChild(line);
   state.count++;
-  while (stream.childElementCount > MAX_LINES) stream.removeChild(stream.firstChild);
+  while (drawer.childElementCount > MAX_LINES) drawer.removeChild(drawer.firstChild);
   $("#count").textContent = state.count + " line" + (state.count === 1 ? "" : "s");
-  if (stick) stream.scrollTop = stream.scrollHeight;
+  if (stick) drawer.scrollTop = drawer.scrollHeight;
   state.lastFresh = Date.now();
   $("#status").textContent = "live";
   $("#status").style.color = "var(--good)";
 }
 
-// ---------- CREDENTIALS ----------
-function persistCreds() { localStorage.setItem("thm-creds", JSON.stringify(state.creds)); }
-function updateCredBadge() { $("#badge-creds").textContent = Object.keys(state.creds).length; }
-
-function sanitize(s) {
-  s = String(s || "");
-  for (const sep of ["\n", "\r", "\t", " ", "\\n", '"', "'"]) {
-    const i = s.indexOf(sep);
-    if (i >= 0) s = s.slice(0, i);
+// ---------- HOST FILTER + LEFT TARGETS ----------
+function setHostFilter(ip) {
+  state.hostFilter = ip || null;
+  const tag = $("#host-filter");
+  if (ip) {
+    tag.style.display = "";
+    tag.className = "filter-tag";
+    tag.textContent = "filter · " + ip + " ✕";
+    tag.onclick = () => setHostFilter(null);
+  } else {
+    tag.style.display = "none";
   }
-  return s.trim().replace(/[.,;:!?)\]>]+$/, "");
+  renderLeft();
+  renderAll();
 }
 
-function addCred(username, password, service, source, context) {
-  username = sanitize(username);
-  password = sanitize(password);
-  if (!username || !password) return;
-  if (username.length > 64 || password.length > 80) return;     // parser garble
-  if (/^[*]+$/.test(password)) return;                          // masked
-  if (password === "(null)" || password === "null") return;
-  const id = username.toLowerCase() + ":" + password;
-  if (state.creds[id]) return;
-  state.creds[id] = {
-    username, password,
-    service: service || "",
-    source:  source  || "auto",
-    context: (context || "").slice(0, 240),
-    ts: Date.now(),
-  };
-  persistCreds(); updateCredBadge();
-  pushLine("OPS", "★ CRED CAPTURED → " + username + " : " + password);
-  if (state.view === "creds") renderCreds();
+function ensureHost(ip) {
+  if (!ip) return;
+  if (!state.hosts[ip]) {
+    state.hosts[ip] = { ip, ts: Math.floor(Date.now() / 1000) };
+    persist("hosts", state.hosts);
+  }
 }
 
-function renderCreds() {
-  const p = $("#pane-creds");
-  p.innerHTML = "";
-  const entries = Object.entries(state.creds);
+function hostCounts(ip) {
+  let p = 0, d = 0, c = 0, v = 0;
+  for (const k in state.ports)  if (state.ports[k].host === ip) p++;
+  for (const k in state.dirs)   if (state.dirs[k].host === ip) d++;
+  for (const k in state.creds)  if (state.creds[k].host === ip) c++;
+  for (const k in state.cves)   if (state.cves[k].host === ip)  v++;
+  for (const k in state.vulns)  if (state.vulns[k].host === ip) v++;
+  return { p, d, c, v };
+}
+
+function renderLeft() {
+  const list = $("#hosts-list");
+  list.innerHTML = "";
+  const entries = Object.values(state.hosts);
+  $("#host-count").textContent = entries.length;
   if (!entries.length) {
-    p.appendChild(el("div", { class: "empty" }, "No credentials captured yet. Patterns watched: hydra hits, medusa, ncrack, hashcat/john output, explicit Username:/Password:, plus user:pass pairs in cred-shaped lines."));
+    list.appendChild(el("div", { class: "empty" }, "no targets yet"));
     return;
   }
-  entries.sort((a, b) => (b[1].ts || 0) - (a[1].ts || 0));
-  for (const [id, c] of entries) {
-    const card = el("div", { class: "cred" },
-      el("div", { class: "cred-row" },
-        el("span", { class: "k" }, "User"),
-        el("span", { class: "v" }, c.username),
-        el("button", { class: "copy", onclick: () => { navigator.clipboard.writeText(c.username); } }, "Copy")
-      ),
-      el("div", { class: "cred-row" },
-        el("span", { class: "k" }, "Pass"),
-        el("span", { class: "v pw" }, c.password),
-        el("button", { class: "copy", onclick: () => { navigator.clipboard.writeText(c.password); } }, "Copy")
+  entries.sort((a, b) => (b.ts || 0) - (a.ts || 0));
+  for (const h of entries) {
+    const cnt = hostCounts(h.ip);
+    const card = el("div", {
+      class: "host" + (state.hostFilter === h.ip ? " active" : ""),
+      onclick: () => setHostFilter(state.hostFilter === h.ip ? null : h.ip),
+    },
+      el("div", { class: "host-ip" }, h.ip),
+      el("div", { class: "host-meta" }, h.hostname || h.os || h.notes || "—"),
+      el("div", { class: "host-counts" },
+        el("span", { class: "pill" }, el("b", {}, String(cnt.p)), " ports"),
+        el("span", { class: "pill" }, el("b", {}, String(cnt.d)), " dirs"),
+        el("span", { class: "pill" }, el("b", {}, String(cnt.c)), " creds"),
+        el("span", { class: "pill" }, el("b", {}, String(cnt.v)), " vulns")
       )
     );
-    const meta = el("div", { class: "cred-meta" });
-    meta.appendChild(el("span", {}, c.service ? "service · " : "", c.service ? el("span", { class: "v" }, c.service) : ""));
-    meta.appendChild(el("span", {}, "via · ", el("span", { class: "v" }, c.source)));
-    card.appendChild(meta);
-    if (c.context) {
-      card.appendChild(el("div", {
-        style: "margin-top:4px;color:var(--fg-dim);font-size:10px;font-style:italic;word-break:break-all;"
-      }, c.context.length > 200 ? c.context.slice(0, 200) + "…" : c.context));
-    }
-    p.appendChild(card);
+    list.appendChild(card);
   }
 }
 
-// ---------- NMAP / OPEN PORTS ----------
-function persistPorts() { localStorage.setItem("thm-ports", JSON.stringify(state.ports)); }
-function updatePortBadge() { $("#badge-nmap").textContent = Object.keys(state.ports).length; }
+// ---------- RIGHT DETAIL PANE ----------
+function showDetail(title, fields, context) {
+  const d = $("#detail");
+  d.className = "detail-card";
+  d.innerHTML = "";
+  d.appendChild(el("div", { class: "detail-title" }, title));
+  for (const [k, v] of fields) {
+    if (v == null || v === "") continue;
+    d.appendChild(el("div", { class: "detail-row" },
+      el("span", { class: "k" }, k),
+      el("span", { class: "v" }, String(v))
+    ));
+  }
+  if (context) d.appendChild(el("div", { class: "detail-ctx" }, String(context)));
+}
+function clearDetail() {
+  const d = $("#detail");
+  d.className = "detail-empty";
+  d.textContent = "";
+  d.appendChild(document.createTextNode("Select a row to view details."));
+}
 
-function addPort(port, proto, service, version, source) {
-  port = Number(port);
-  if (!port || port < 1 || port > 65535) return;
-  proto = (proto || "tcp").toLowerCase();
-  const id = port + "/" + proto;
-  const prev = state.ports[id] || {};
-  state.ports[id] = {
-    port, proto,
-    service: service || prev.service || "",
-    version: (version || prev.version || "").trim(),
-    source:  source || prev.source || "nmap",
-    ts: Date.now(),
-  };
-  persistPorts(); updatePortBadge();
-  if (state.view === "nmap") renderPorts();
+// ---------- BADGES ----------
+function refreshBadges() {
+  $("#b-hosts").textContent  = Object.keys(state.hosts).length;
+  $("#b-nmap").textContent   = Object.keys(state.ports).length;
+  $("#b-dirs").textContent   = Object.keys(state.dirs).length;
+  $("#b-subs").textContent   = Object.keys(state.subs).length;
+  $("#b-users").textContent  = Object.keys(state.users).length;
+  $("#b-creds").textContent  = Object.keys(state.creds).length;
+  $("#b-hashes").textContent = Object.keys(state.hashes).length;
+  $("#b-cves").textContent   = Object.keys(state.cves).length;
+  $("#b-vulns").textContent  = Object.keys(state.vulns).length;
+  $("#b-shares").textContent = Object.keys(state.shares).length;
+  $("#b-shells").textContent = Object.keys(state.shells).length;
+  $("#b-loot").textContent   = Object.keys(state.loot).length;
+  $("#b-notes").textContent  = Object.keys(state.notes).length;
+}
+
+// ---------- FILTER HELPER ----------
+function applyFilter(arr) {
+  const q = ($("#search").value || "").toLowerCase().trim();
+  const hf = state.hostFilter;
+  return arr.filter(e => {
+    if (hf && e.host && e.host !== hf) return false;
+    if (!q) return true;
+    return JSON.stringify(e).toLowerCase().includes(q);
+  });
+}
+$("#search").addEventListener("input", () => renderAll());
+
+// ---------- INGEST (called by both polling pipelines) ----------
+function ingestRecord(r) {
+  if (!r || typeof r !== "object" || !r.type) return;
+  if (r.host) ensureHost(r.host);
+  switch (r.type) {
+    case "host": {
+      const ip = r.ip || r.host;
+      if (!ip) return;
+      const prev = state.hosts[ip] || {};
+      state.hosts[ip] = Object.assign({}, prev, r, { ip, ts: r.ts || prev.ts || Math.floor(Date.now() / 1000) });
+      persist("hosts", state.hosts);
+      pushLine("LOOT", "✚ host " + ip + (r.hostname ? " (" + r.hostname + ")" : ""));
+      break;
+    }
+    case "port": {
+      const id = (r.host || "_") + ":" + r.port + "/" + (r.proto || "tcp");
+      const prev = state.ports[id] || {};
+      state.ports[id] = Object.assign({}, prev, r, { id });
+      persist("ports", state.ports);
+      pushLine("LOOT", "✚ port " + r.port + "/" + (r.proto || "tcp") + " " + (r.service || "") + (r.host ? " · " + r.host : ""));
+      break;
+    }
+    case "dir": {
+      const id = (r.host || "_") + "|" + (r.url || "");
+      const prev = state.dirs[id] || {};
+      state.dirs[id] = Object.assign({}, prev, r, { id });
+      persist("dirs", state.dirs);
+      pushLine("LOOT", "✚ dir " + (r.url || "") + (r.status ? " (" + r.status + ")" : ""));
+      break;
+    }
+    case "cred": {
+      const id = (r.host || "_") + "|" + (r.user || "") + ":" + (r.pass || "");
+      if (state.creds[id]) return;
+      state.creds[id] = Object.assign({}, r, { id });
+      persist("creds", state.creds);
+      pushLine("LOOT", "★ CRED " + (r.user || "") + " : " + (r.pass || ""));
+      break;
+    }
+    case "hash": {
+      const id = (r.host || "_") + "|" + (r.user || "?") + "|" + (r.hash || "").slice(0, 32);
+      state.hashes[id] = Object.assign({}, r, { id });
+      persist("hashes", state.hashes);
+      pushLine("LOOT", "✚ hash " + (r.algo || "") + " · " + (r.user || ""));
+      break;
+    }
+    case "cve": {
+      const id = (r.host || "_") + "|" + (r.id || "");
+      state.cves[id] = Object.assign({}, r, { _id: id });
+      persist("cves", state.cves);
+      pushLine("LOOT", "✚ CVE " + (r.id || "") + " (cvss " + (r.cvss != null ? r.cvss : "?") + ")");
+      break;
+    }
+    case "vuln": {
+      const id = (r.host || "_") + "|" + (r.category || "") + "|" + (r.url || "") + "|" + (r.payload || "").slice(0, 40);
+      state.vulns[id] = Object.assign({}, r, { id });
+      persist("vulns", state.vulns);
+      pushLine("LOOT", "✚ vuln " + (r.category || "") + " · " + (r.severity || ""));
+      break;
+    }
+    case "share": {
+      const id = (r.host || "_") + "|" + (r.name || "");
+      state.shares[id] = Object.assign({}, r, { id });
+      persist("shares", state.shares);
+      pushLine("LOOT", "✚ share " + (r.name || "") + " · " + (r.perms || ""));
+      break;
+    }
+    case "user": {
+      const id = (r.host || "_") + "|" + (r.name || "");
+      state.users[id] = Object.assign({}, r, { id });
+      persist("users", state.users);
+      pushLine("LOOT", "✚ user " + (r.name || ""));
+      break;
+    }
+    case "subdomain": {
+      const id = r.name || "";
+      if (!id) return;
+      state.subs[id] = Object.assign({}, r, { id });
+      persist("subs", state.subs);
+      pushLine("LOOT", "✚ subdomain " + r.name);
+      break;
+    }
+    case "loot": {
+      const id = (r.host || "_") + "|" + (r.kind || "") + "|" + (r.path || r.value || "").slice(0, 80);
+      state.loot[id] = Object.assign({}, r, { id });
+      persist("loot", state.loot);
+      const head = r.kind === "flag" ? "★ FLAG " : "✚ loot ";
+      pushLine("LOOT", head + (r.kind || "") + " · " + (r.path || r.value || r.note || ""));
+      break;
+    }
+    case "shell": {
+      const id = (r.host || "_") + "|" + (r.user || "") + "|" + (r.ts || Date.now());
+      state.shells[id] = Object.assign({}, r, { id });
+      persist("shells", state.shells);
+      pushLine("LOOT", "✚ shell as " + (r.user || "?") + " (" + (r.privilege || "?") + ")");
+      break;
+    }
+    case "note": {
+      const id = (r.host || "_") + "|" + (r.text || "").slice(0, 80);
+      state.notes[id] = Object.assign({}, r, { id });
+      persist("notes", state.notes);
+      pushLine("LOOT", "✎ note · " + (r.text || "").slice(0, 80));
+      break;
+    }
+    default:
+      pushLine("LOOT", "? unknown type: " + r.type);
+  }
+  refreshBadges();
+  renderLeft();
+}
+
+// ---------- RENDERERS ----------
+function renderHosts() {
+  const p = $("#pane-hosts");
+  p.innerHTML = "";
+  const entries = applyFilter(Object.values(state.hosts));
+  if (!entries.length) {
+    p.appendChild(el("div", { class: "empty" }, "no hosts yet"));
+    return;
+  }
+  p.appendChild(el("div", { class: "row-head hosts-row" },
+    el("span", {}, "IP"),
+    el("span", {}, "Hostname"),
+    el("span", {}, "OS / Notes"),
+    el("span", {}, "Ports")
+  ));
+  entries.sort((a, b) => a.ip.localeCompare(b.ip));
+  for (const e of entries) {
+    const cnt = hostCounts(e.ip);
+    p.appendChild(el("div", {
+      class: "row hosts-row",
+      onclick: () => {
+        showDetail("Host", [
+          ["IP", e.ip], ["Hostname", e.hostname], ["OS", e.os],
+          ["MAC", e.mac], ["Notes", e.notes],
+          ["Ports", cnt.p], ["Dirs", cnt.d], ["Creds", cnt.c], ["Vulns", cnt.v],
+        ]);
+        setHostFilter(e.ip);
+      }
+    },
+      el("span", { class: "k" }, e.ip),
+      el("span", { class: "v" }, e.hostname || "—"),
+      el("span", { class: "v" }, e.os || e.notes || "—"),
+      el("span", { class: "meta" }, String(cnt.p))
+    ));
+  }
 }
 
 function renderPorts() {
   const p = $("#pane-nmap");
   p.innerHTML = "";
-  const entries = Object.values(state.ports);
+  const entries = applyFilter(Object.values(state.ports));
   if (!entries.length) {
-    p.appendChild(el("div", { class: "empty" }, "No open ports observed yet. Nmap output and 'Discovered open port' lines populate this tab automatically."));
+    p.appendChild(el("div", { class: "empty" }, "no open ports yet"));
     return;
   }
-  entries.sort((a, b) => a.port - b.port);
+  entries.sort((a, b) => (a.host || "").localeCompare(b.host || "") || (a.port - b.port));
   p.appendChild(el("div", { class: "row-head nmap-row" },
     el("span", {}, "Port"),
     el("span", {}, "Service"),
     el("span", {}, "Version / Banner"),
-    el("span", {}, "Via")
+    el("span", {}, "Host")
   ));
   for (const e of entries) {
-    p.appendChild(el("div", { class: "row nmap-row" },
-      el("span", { class: "port" }, e.port + "/" + e.proto),
+    p.appendChild(el("div", {
+      class: "row nmap-row",
+      onclick: () => showDetail("Port " + e.port + "/" + (e.proto || "tcp"), [
+        ["Host", e.host], ["Port", e.port + "/" + (e.proto || "tcp")],
+        ["Service", e.service], ["Version", e.version], ["Tool", e.tool || e.source]
+      ], e.context)
+    },
+      el("span", { class: "port" }, e.port + "/" + (e.proto || "tcp")),
       el("span", { class: "svc" }, e.service || "—"),
       el("span", { class: "v" }, e.version || "—"),
-      el("span", { class: "meta" }, e.source)
+      el("span", { class: "meta" }, e.host || "—")
     ));
   }
-}
-
-// ---------- DIRECTORIES ----------
-function persistDirs() { localStorage.setItem("thm-dirs", JSON.stringify(state.dirs)); }
-function updateDirsBadge() { $("#badge-dirs").textContent = Object.keys(state.dirs).length; }
-
-function addDir(path, code, size, source) {
-  if (!path) return;
-  path = String(path).split("?")[0].split("#")[0].replace(/[.,;:!?)\]>]+$/, "");
-  if (path.length < 2) return;
-  // Reject obvious filesystem / placeholder paths — the Directories tab is
-  // strictly for WEB paths discovered by gobuster/ffuf/dirb/nikto.
-  if (/^\/(?:Users|home|root|tmp|opt|var|etc|usr|bin|sbin|lib|dev|proc|sys|mnt|media|private)\b/i.test(path)) return;
-  // Drop bare placeholders like "/path", "/foo", "/example"
-  if (/^\/(?:path|foo|bar|baz|example|placeholder|file|dir|something)$/i.test(path)) return;
-  // Reject literal man-page placeholders containing "to" or "from"
-  if (path === "/" || path === "/index.html" || path === "/favicon.ico") return;
-  if (!/^\/[A-Za-z0-9._\/\-~%]{0,160}$/.test(path)) return;
-  if (/\.(png|jpe?g|gif|svg|ico|woff2?|ttf|eot|css|map)$/i.test(path)) return;
-  // Require a status code OR a recognised web-tool source. No status + no
-  // recognised source = we don't actually know if it's a web path.
-  const knownSource = ["gobuster", "ffuf", "dirb", "nikto"].includes(source);
-  if (!code && !knownSource) return;
-  const prev = state.dirs[path] || {};
-  state.dirs[path] = {
-    path,
-    code: code ? String(code) : (prev.code || ""),
-    size: size ? String(size) : (prev.size || ""),
-    source: source || prev.source || "tool",
-    ts: Date.now(),
-  };
-  persistDirs(); updateDirsBadge();
-  if (state.view === "dirs") renderDirs();
 }
 
 function renderDirs() {
   const p = $("#pane-dirs");
   p.innerHTML = "";
-  const entries = Object.values(state.dirs);
+  const entries = applyFilter(Object.values(state.dirs));
   if (!entries.length) {
-    p.appendChild(el("div", { class: "empty" }, "No directories observed yet. gobuster / ffuf / dirb / nikto output populates this tab automatically."));
+    p.appendChild(el("div", { class: "empty" }, "no directories yet"));
     return;
   }
-  // sort: 200s first, then by path
-  const rank = c => c === "200" ? 0 : c === "301" || c === "302" ? 1 : c === "401" || c === "403" ? 2 : 3;
-  entries.sort((a, b) => (rank(a.code) - rank(b.code)) || a.path.localeCompare(b.path));
+  const rank = c => c == 200 ? 0 : c == 301 || c == 302 ? 1 : c == 401 || c == 403 ? 2 : 3;
+  entries.sort((a, b) => (rank(a.status || a.code) - rank(b.status || b.code)) || (a.url || a.path || "").localeCompare(b.url || b.path || ""));
   p.appendChild(el("div", { class: "row-head dirs-row" },
     el("span", {}, "Path"),
     el("span", {}, "Status"),
     el("span", {}, "Notes"),
-    el("span", {}, "Size")
+    el("span", {}, "Size"),
+    el("span", {}, "Host")
   ));
   for (const e of entries) {
-    let cls = "v";
-    let note = "";
-    if (e.code === "200") { cls = "v good"; note = "OK"; }
-    else if (e.code === "301" || e.code === "302") { cls = "v"; note = "redirect"; }
-    else if (e.code === "401") { cls = "v warn"; note = "auth required"; }
-    else if (e.code === "403") { cls = "v warn"; note = "forbidden · exists"; }
-    else if (e.code && e.code.startsWith("5")) { cls = "v bad"; note = "server error"; }
-    const status = e.code ? "HTTP " + e.code : (e.source === "nikto" ? "nikto" : "—");
-    p.appendChild(el("div", { class: "row dirs-row" },
-      el("span", { class: "k" }, e.path),
+    const code = String(e.status || e.code || "");
+    let cls = "v", note = "";
+    if (code === "200") { cls = "v good"; note = "OK"; }
+    else if (code === "301" || code === "302") { cls = "v"; note = "redirect"; }
+    else if (code === "401") { cls = "v warn"; note = "auth required"; }
+    else if (code === "403") { cls = "v warn"; note = "forbidden · exists"; }
+    else if (code.startsWith("5")) { cls = "v bad"; note = "server error"; }
+    const status = code ? "HTTP " + code : (e.tool === "nikto" ? "nikto" : "—");
+    const url = e.url || e.path || "";
+    p.appendChild(el("div", {
+      class: "row dirs-row",
+      onclick: () => showDetail("Directory", [
+        ["URL", url], ["Status", status], ["Size", e.size], ["Tool", e.tool || e.source], ["Host", e.host]
+      ])
+    },
+      el("span", { class: "k" }, url),
       el("span", { class: cls }, status),
-      el("span", { class: "v" }, note || (e.source === "nikto" ? "nikto finding" : "")),
-      el("span", { class: "size" }, e.size ? e.size + "b" : "")
+      el("span", { class: "v" }, note || (e.tool === "nikto" ? "nikto finding" : "")),
+      el("span", { class: "size" }, e.size ? e.size + "b" : ""),
+      el("span", { class: "meta" }, e.host || "—")
     ));
   }
 }
 
-// ---------- PORT + DIR EXTRACTION (only on tool_result text) ----------
-function scanForPortsAndDirs(line, tool) {
-  if (!line) return;
-  const L = String(line);
-  const src = tool || "tool";
-  let m;
-
-  // ---- NMAP open ports ----
-  // "Discovered open port 80/tcp on 10.x.x.x"
-  if ((m = L.match(/Discovered open port\s+(\d+)\/(tcp|udp)\b/i))) {
-    addPort(m[1], m[2], "", "", "nmap");
-  }
-  // "22/tcp open ssh   OpenSSH 8.2p1 Ubuntu ..."
-  if ((m = L.match(/^\s*(\d{1,5})\/(tcp|udp)\s+open\s+(\S+)(?:\s+(.+?))?\s*$/))) {
-    addPort(m[1], m[2], m[3], (m[4] || "").trim(), "nmap");
-  }
-  // "Service Info: OS: Linux; CPE: ..." — sometimes nmap reports services elsewhere
-  // (handled implicitly by the line above)
-
-  // ---- GOBUSTER ----
-  // "/admin (Status: 200) [Size: 1234]"
-  const goRe = /(\/[A-Za-z0-9._\/\-~%]{1,160})\s+\(Status:\s*(\d{3})\)(?:\s*\[Size:\s*(\d+))?/g;
-  while ((m = goRe.exec(L)) !== null) addDir(m[1], m[2], m[3] || "", "gobuster");
-
-  // ---- FFUF ----
-  // "/admin [Status: 200, Size: 1234, ...]"
-  const ffRe = /\b(\/[A-Za-z0-9._\/\-~%]{1,160})\b[^\n]*?\[Status:\s*(\d{3})[^\]]*?(?:Size:\s*(\d+))?/g;
-  while ((m = ffRe.exec(L)) !== null) addDir(m[1], m[2], m[3] || "", "ffuf");
-
-  // ---- DIRB ----
-  // "http://host/admin (CODE:200|SIZE:1234)"
-  const dbRe = /https?:\/\/[^\/\s]+(\/[A-Za-z0-9._\/\-~%]{1,160})\s*\(CODE:(\d{3})\|SIZE:(\d+)\)/g;
-  while ((m = dbRe.exec(L)) !== null) addDir(m[1], m[2], m[3], "dirb");
-
-  // ---- NIKTO ----
-  if ((m = L.match(/^\+\s+(\/[A-Za-z0-9._\/\-~%]{1,160}):/))) addDir(m[1], "", "", "nikto");
-}
-
-// ---------- CRED EXTRACTION (only on tool_result text) ----------
-function scanForCreds(line, tool) {
-  if (!line) return;
-  const L = String(line);
-  const src = tool || "tool";
-  let m;
-
-  // hydra: "[port][proto] host: 1.2.3.4   login: bob   password: hunter2"
-  if ((m = L.match(/host:\s*(\S+).*?login:\s*(\S+)\s+password:\s*([^\s"]+?)(?=\s|\\n|"|$)/i))) {
-    addCred(m[2], m[3], "hydra · " + m[1], "hydra", L);
+function renderCreds() {
+  const p = $("#pane-creds");
+  p.innerHTML = "";
+  const entries = applyFilter(Object.values(state.creds));
+  if (!entries.length) {
+    p.appendChild(el("div", { class: "empty" }, "no credentials yet"));
     return;
   }
-
-  // medusa: "ACCOUNT FOUND: [ssh] Host: 1.2.3.4 User: bob Password: hunter2 [SUCCESS]"
-  if ((m = L.match(/ACCOUNT FOUND:.*?User:\s*(\S+)\s+Password:\s*(\S+)/i))) {
-    addCred(m[1], m[2], "medusa", "medusa", L);
-    return;
-  }
-
-  // ncrack: "Discovered credentials for ssh on 1.2.3.4:22 - bob:hunter2"
-  if ((m = L.match(/Discovered credentials.+?\s+(\S+):(\S+)\s*$/i))) {
-    addCred(m[1], m[2], "ncrack", "ncrack", L);
-    return;
-  }
-
-  // patator: "INFO - ... user:bob password:hunter2"
-  if ((m = L.match(/user[=:\s]+(\S+)\s+password[=:\s]+(\S+)/i))) {
-    addCred(m[1], m[2], "", "patator/tool", L);
-    return;
-  }
-
-  // explicit Username:/Password: pair (cracking output, web responses)
-  if ((m = L.match(/\bUsername:\s*(\S+)\s+Password:\s*(\S+)/i))) {
-    addCred(m[1], m[2], "", "tool", L);
-    return;
-  }
-
-  // SQL dumps & similar: "username='bob' password='hunter2'"
-  if ((m = L.match(/\b(?:username|user|login)\s*[:=]\s*['"]?([A-Za-z0-9._\-@]{2,40})['"]?\s*[,;|]?\s*(?:password|pass|pwd)\s*[:=]\s*['"]?([^\s'",;|]{3,80})['"]?/i))) {
-    addCred(m[1], m[2], "", "tool", L);
-    return;
-  }
-
-  // explicit cleartext leak: "Your new password is: hunter2"
-  if ((m = L.match(/Your\s+(?:new\s+)?password\s+is[:\s]+([^\s'",;|]{3,80})/i))) {
-    const userM = L.match(/\b(?:for|to)\s+(?:user\s+)?(?:["'`]?)([a-z_][a-z0-9_\-]{1,31})(?:["'`]?)\b/i);
-    if (userM) addCred(userM[1], m[1], "leaked", "leak", L);
-    return;
-  }
-
-  // hashcat/john cracked output: "$hash$:plaintext"  or "user:plaintext (cracked)"
-  if ((m = L.match(/^\s*([a-z_][a-z0-9_\-]{1,31}):([^\s:]{3,80})\s+\(cracked\)/im))) {
-    addCred(m[1], m[2], "", "hashcat/john", L);
-    return;
-  }
-
-  // bare "bob:hunter2" only when LINE looks credential-shaped
-  if (/\b(?:cred|credentials|password|hash|cracked|valid|found|success|root|admin|user)\b/i.test(L)) {
-    const simple = L.match(/(?:^|\s|["'`(])([a-z_][a-z0-9_\-]{1,31}):([^\s'"`)/\\:]{4,80})(?=\s|$|["'`),.;])/i);
-    if (simple) {
-      const p = simple[2];
-      const looksJunk = /^\d{1,5}$/.test(p) ||
-                       /^\d+\.\d+/.test(p) ||
-                       /^\d\d:\d\d/.test(p) ||
-                       p.includes("/") || p.includes("\\");
-      if (!looksJunk) addCred(simple[1], p, "", "tool", L);
-    }
+  entries.sort((a, b) => (b.ts || 0) - (a.ts || 0));
+  p.appendChild(el("div", { class: "row-head creds-row" },
+    el("span", {}, "User"),
+    el("span", {}, "Password"),
+    el("span", {}, "Service"),
+    el("span", {}, "")
+  ));
+  for (const e of entries) {
+    p.appendChild(el("div", {
+      class: "row creds-row",
+      onclick: () => showDetail("Credential", [
+        ["User", e.user || e.username], ["Pass", e.pass || e.password],
+        ["Service", e.service], ["Source", e.source], ["Host", e.host]
+      ], e.context)
+    },
+      el("span", { class: "k" }, e.user || e.username || ""),
+      el("span", { class: "v pw" }, e.pass || e.password || ""),
+      el("span", { class: "v" }, e.service || "—"),
+      el("button", { class: "copy", onclick: (ev) => { ev.stopPropagation(); navigator.clipboard.writeText((e.user || e.username || "") + ":" + (e.pass || e.password || "")); } }, "user:pass")
+    ));
   }
 }
 
-// ---------- EVENT INGESTION ----------
+function renderCves() {
+  const p = $("#pane-cves");
+  p.innerHTML = "";
+  const entries = applyFilter(Object.values(state.cves));
+  if (!entries.length) {
+    p.appendChild(el("div", { class: "empty" }, "no CVEs yet — emit type:cve records"));
+    return;
+  }
+  entries.sort((a, b) => (b.cvss || 0) - (a.cvss || 0));
+  p.appendChild(el("div", { class: "row-head cves-row" },
+    el("span", {}, "CVE"),
+    el("span", {}, "CVSS"),
+    el("span", {}, "Service / Notes"),
+    el("span", {}, "Host"),
+    el("span", {}, "")
+  ));
+  for (const e of entries) {
+    const score = e.cvss != null ? Number(e.cvss).toFixed(1) : "—";
+    let cls = "v cvss";
+    if (e.cvss >= 9)      cls = "v cvss crit";
+    else if (e.cvss >= 7) cls = "v cvss bad";
+    else if (e.cvss >= 4) cls = "v cvss warn";
+    else                  cls = "v cvss good";
+    p.appendChild(el("div", {
+      class: "row cves-row",
+      onclick: () => showDetail(e.id || "CVE", [
+        ["CVE", e.id], ["CVSS", score], ["Service", e.service], ["Version", e.version],
+        ["Exploit", e.exploit_available ? "available" : "unknown"],
+        ["Host", e.host], ["Notes", e.notes]
+      ])
+    },
+      el("span", { class: "cve-id" }, e.id || ""),
+      el("span", { class: cls }, score),
+      el("span", { class: "v" }, (e.service || "") + (e.version ? " " + e.version : "") + (e.notes ? " · " + e.notes : "")),
+      el("span", { class: "v" }, e.host || "—"),
+      el("span", { class: "meta" }, e.exploit_available ? "EXPLOIT" : "")
+    ));
+  }
+}
+
+function renderVulns() {
+  const p = $("#pane-vulns");
+  p.innerHTML = "";
+  const entries = applyFilter(Object.values(state.vulns));
+  if (!entries.length) {
+    p.appendChild(el("div", { class: "empty" }, "no vulns yet — emit type:vuln records"));
+    return;
+  }
+  const sevRank = s => ({ "critical": 0, "high": 1, "medium": 2, "low": 3, "info": 4 }[s] ?? 5);
+  entries.sort((a, b) => sevRank(a.severity) - sevRank(b.severity));
+  p.appendChild(el("div", { class: "row-head vulns-row" },
+    el("span", {}, "Severity"),
+    el("span", {}, "Category"),
+    el("span", {}, "URL / Evidence"),
+    el("span", {}, "Host")
+  ));
+  for (const e of entries) {
+    let cls = "v";
+    if (e.severity === "critical") cls = "v crit";
+    else if (e.severity === "high") cls = "v bad";
+    else if (e.severity === "medium") cls = "v warn";
+    else if (e.severity === "low") cls = "v good";
+    p.appendChild(el("div", {
+      class: "row vulns-row",
+      onclick: () => showDetail("Vulnerability · " + (e.category || ""), [
+        ["Severity", e.severity], ["Category", e.category], ["URL", e.url],
+        ["Payload", e.payload], ["Tool", e.tool], ["Host", e.host], ["Evidence", e.evidence]
+      ])
+    },
+      el("span", { class: cls }, (e.severity || "—").toUpperCase()),
+      el("span", { class: "svc" }, e.category || "—"),
+      el("span", { class: "v" }, (e.url || "") + (e.evidence ? " — " + e.evidence : "")),
+      el("span", { class: "meta" }, e.host || "—")
+    ));
+  }
+}
+
+function renderHashes() {
+  const p = $("#pane-hashes");
+  p.innerHTML = "";
+  const entries = applyFilter(Object.values(state.hashes));
+  if (!entries.length) {
+    p.appendChild(el("div", { class: "empty" }, "no hashes captured yet"));
+    return;
+  }
+  p.appendChild(el("div", { class: "row-head hash-row" },
+    el("span", {}, "User"),
+    el("span", {}, "Algo"),
+    el("span", {}, "Hash"),
+    el("span", {}, "Host")
+  ));
+  for (const e of entries) {
+    p.appendChild(el("div", {
+      class: "row hash-row",
+      onclick: () => showDetail("Hash", [
+        ["User", e.user], ["Algo", e.algo], ["Source", e.source], ["Host", e.host], ["Hash", e.hash]
+      ])
+    },
+      el("span", { class: "k" }, e.user || "?"),
+      el("span", { class: "svc" }, e.algo || "—"),
+      el("span", { class: "v" }, (e.hash || "").slice(0, 80) + ((e.hash || "").length > 80 ? "…" : "")),
+      el("span", { class: "meta" }, e.host || "—")
+    ));
+  }
+}
+
+function renderShares() {
+  const p = $("#pane-shares");
+  p.innerHTML = "";
+  const entries = applyFilter(Object.values(state.shares));
+  if (!entries.length) {
+    p.appendChild(el("div", { class: "empty" }, "no shares yet"));
+    return;
+  }
+  p.appendChild(el("div", { class: "row-head share-row" },
+    el("span", {}, "Name"),
+    el("span", {}, "Perms"),
+    el("span", {}, "Comment"),
+    el("span", {}, "Host")
+  ));
+  for (const e of entries) {
+    p.appendChild(el("div", {
+      class: "row share-row",
+      onclick: () => showDetail("Share " + (e.name || ""), [
+        ["Name", e.name], ["Perms", e.perms], ["Comment", e.comment], ["Tool", e.tool], ["Host", e.host]
+      ])
+    },
+      el("span", { class: "k" }, e.name || "—"),
+      el("span", { class: "v good" }, e.perms || "—"),
+      el("span", { class: "v" }, e.comment || ""),
+      el("span", { class: "meta" }, e.host || "—")
+    ));
+  }
+}
+
+function renderUsers() {
+  const p = $("#pane-users");
+  p.innerHTML = "";
+  const entries = applyFilter(Object.values(state.users));
+  if (!entries.length) {
+    p.appendChild(el("div", { class: "empty" }, "no users enumerated yet"));
+    return;
+  }
+  p.appendChild(el("div", { class: "row-head user-row" },
+    el("span", {}, "Username"),
+    el("span", {}, "Source"),
+    el("span", {}, "Host")
+  ));
+  for (const e of entries) {
+    p.appendChild(el("div", {
+      class: "row user-row",
+      onclick: () => showDetail("User " + (e.name || ""), [
+        ["Username", e.name], ["Source", e.source], ["Host", e.host]
+      ])
+    },
+      el("span", { class: "k" }, e.name || "—"),
+      el("span", { class: "v" }, e.source || ""),
+      el("span", { class: "meta" }, e.host || "—")
+    ));
+  }
+}
+
+function renderSubs() {
+  const p = $("#pane-subs");
+  p.innerHTML = "";
+  const entries = applyFilter(Object.values(state.subs));
+  if (!entries.length) {
+    p.appendChild(el("div", { class: "empty" }, "no subdomains yet"));
+    return;
+  }
+  entries.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+  p.appendChild(el("div", { class: "row-head sub-row" },
+    el("span", {}, "Subdomain"),
+    el("span", {}, "IP"),
+    el("span", {}, "Tool")
+  ));
+  for (const e of entries) {
+    p.appendChild(el("div", {
+      class: "row sub-row",
+      onclick: () => showDetail("Subdomain", [
+        ["Name", e.name], ["IP", e.ip], ["Tool", e.tool]
+      ])
+    },
+      el("span", { class: "k" }, e.name || "—"),
+      el("span", { class: "v" }, e.ip || ""),
+      el("span", { class: "meta" }, e.tool || "")
+    ));
+  }
+}
+
+function renderLoot() {
+  const p = $("#pane-loot");
+  p.innerHTML = "";
+  const entries = applyFilter(Object.values(state.loot));
+  if (!entries.length) {
+    p.appendChild(el("div", { class: "empty" }, "no loot yet — flags, keys, files go here"));
+    return;
+  }
+  entries.sort((a, b) => (b.ts || 0) - (a.ts || 0));
+  p.appendChild(el("div", { class: "row-head loot-row" },
+    el("span", {}, "Kind"),
+    el("span", {}, "Path / Value"),
+    el("span", {}, "Note"),
+    el("span", {}, "Host")
+  ));
+  for (const e of entries) {
+    const kindCls = e.kind === "flag" ? "svc" : "k";
+    p.appendChild(el("div", {
+      class: "row loot-row",
+      onclick: () => showDetail("Loot · " + (e.kind || ""), [
+        ["Kind", e.kind], ["Path", e.path], ["Value", e.value], ["Note", e.note], ["Host", e.host]
+      ])
+    },
+      el("span", { class: kindCls }, (e.kind || "").toUpperCase() || "—"),
+      el("span", { class: "k" }, e.path || e.value || "—"),
+      el("span", { class: "v" }, e.note || ""),
+      el("span", { class: "meta" }, e.host || "—")
+    ));
+  }
+}
+
+function renderShells() {
+  const p = $("#pane-shells");
+  p.innerHTML = "";
+  const entries = applyFilter(Object.values(state.shells));
+  if (!entries.length) {
+    p.appendChild(el("div", { class: "empty" }, "no shells landed yet"));
+    return;
+  }
+  p.appendChild(el("div", { class: "row-head shell-row" },
+    el("span", {}, "Host"),
+    el("span", {}, "User"),
+    el("span", {}, "Privilege"),
+    el("span", {}, "Method"),
+    el("span", {}, "")
+  ));
+  for (const e of entries) {
+    let cls = "v";
+    if (e.privilege === "root") cls = "v crit";
+    else if (e.privilege === "user") cls = "v good";
+    p.appendChild(el("div", {
+      class: "row shell-row",
+      onclick: () => showDetail("Shell", [
+        ["Host", e.host], ["User", e.user], ["Privilege", e.privilege], ["Method", e.method]
+      ])
+    },
+      el("span", { class: "k" }, e.host || "—"),
+      el("span", { class: "svc" }, e.user || "—"),
+      el("span", { class: cls }, (e.privilege || "—").toUpperCase()),
+      el("span", { class: "v" }, e.method || ""),
+      el("span", { class: "meta" }, "")
+    ));
+  }
+}
+
+function renderNotes() {
+  const p = $("#pane-notes");
+  p.innerHTML = "";
+  const entries = applyFilter(Object.values(state.notes));
+  if (!entries.length) {
+    p.appendChild(el("div", { class: "empty" }, "no notes yet"));
+    return;
+  }
+  entries.sort((a, b) => (b.ts || 0) - (a.ts || 0));
+  p.appendChild(el("div", { class: "row-head note-row" },
+    el("span", {}, "Host"),
+    el("span", {}, "Note"),
+    el("span", {}, "")
+  ));
+  for (const e of entries) {
+    p.appendChild(el("div", {
+      class: "row note-row",
+      onclick: () => showDetail("Note", [["Host", e.host], ["Text", e.text]])
+    },
+      el("span", { class: "k" }, e.host || "—"),
+      el("span", { class: "v" }, e.text || ""),
+      el("span", { class: "meta" }, "")
+    ));
+  }
+}
+
+function renderAll() {
+  refreshBadges();
+  renderHosts();
+  renderPorts();
+  renderDirs();
+  renderSubs();
+  renderUsers();
+  renderCreds();
+  renderHashes();
+  renderCves();
+  renderVulns();
+  renderShares();
+  renderShells();
+  renderLoot();
+  renderNotes();
+}
+
+// ---------- LEGACY: telemetry from ops.jsonl ----------
 function renderEvent(ev) {
   if (!ev) return;
   const t = ev.type || "";
@@ -737,13 +1391,7 @@ function renderEvent(ev) {
     pushLine("TOOL", "▶ " + name + prev);
   } else if (t === "tool_result") {
     const text = stripMeta(ev.text || "");
-    if (text) {
-      pushLine("RESULT", text.length > 500 ? text.slice(0, 500) + "…" : text);
-      text.split("\n").forEach(ln => {
-        scanForCreds(ln, ev.tool || "tool");
-        scanForPortsAndDirs(ln, ev.tool || "tool");
-      });
-    }
+    if (text) pushLine("RESULT", text.length > 500 ? text.slice(0, 500) + "…" : text);
   }
 }
 
@@ -752,6 +1400,7 @@ async function fetchJSON(url) {
   try { const r = await fetch(url); if (!r.ok) return null; return await r.json(); }
   catch { return null; }
 }
+
 async function pollSessions() {
   const r = await fetchJSON("/api/sessions");
   if (!r || !Array.isArray(r.sessions)) return;
@@ -775,6 +1424,89 @@ async function pollEvents() {
   if (r.events && r.events.length) for (const ev of r.events) renderEvent(ev);
 }
 
+// ---------- LOOT.JSONL POLLING (the new pipeline) ----------
+async function pollLootFiles() {
+  const r = await fetchJSON("/api/loot-files");
+  if (!r || !Array.isArray(r.files)) return;
+  const live = new Set();
+  for (const f of r.files) {
+    live.add(f.path);
+    if (!state.lootFiles[f.path]) {
+      state.lootFiles[f.path] = { offset: 0, name: f.path };
+      pushLine("OPS", "▸ loot stream attached → " + f.path);
+    }
+  }
+  // mark loot label
+  const n = Object.keys(state.lootFiles).length;
+  $("#loot-label").textContent = n ? "loot: " + n + " stream" + (n === 1 ? "" : "s") : "loot: idle";
+  // drop stale
+  for (const k of Object.keys(state.lootFiles)) {
+    if (!live.has(k)) {
+      pushLine("OPS", "▸ loot stream detached → " + k);
+      delete state.lootFiles[k];
+    }
+  }
+}
+
+async function pollLootTails() {
+  const paths = Object.keys(state.lootFiles);
+  for (const p of paths) {
+    const st = state.lootFiles[p];
+    const u = "/api/loot?path=" + encodeURIComponent(p) + "&offset=" + st.offset;
+    const r = await fetchJSON(u);
+    if (!r) continue;
+    if (typeof r.offset === "number") st.offset = r.offset;
+    if (r.events && r.events.length) {
+      for (const ev of r.events) ingestRecord(ev);
+      // re-render only the active view to keep things snappy
+      renderAll();
+    }
+  }
+}
+
+// ---------- EXPORT ----------
+function exportSession() {
+  const out = {
+    exportedAt: new Date().toISOString(),
+    hosts: Object.values(state.hosts),
+    ports: Object.values(state.ports),
+    dirs: Object.values(state.dirs),
+    subs: Object.values(state.subs),
+    users: Object.values(state.users),
+    creds: Object.values(state.creds),
+    hashes: Object.values(state.hashes),
+    cves: Object.values(state.cves),
+    vulns: Object.values(state.vulns),
+    shares: Object.values(state.shares),
+    shells: Object.values(state.shells),
+    loot: Object.values(state.loot),
+    notes: Object.values(state.notes),
+  };
+  const blob = new Blob([JSON.stringify(out, null, 2)], { type: "application/json" });
+  const a = el("a", {
+    href: URL.createObjectURL(blob),
+    download: "thm-ops-" + new Date().toISOString().replace(/[:.]/g, "-") + ".json",
+  });
+  a.click();
+}
+$("#export").addEventListener("click", exportSession);
+
+// ---------- CLEAR ----------
+$("#clear").addEventListener("click", () => {
+  if (!confirm("Clear all captured data? This cannot be undone.")) return;
+  drawer.innerHTML = "";
+  state.count = 0;
+  $("#count").textContent = "0 lines";
+  for (const k of ["hosts","ports","dirs","subs","users","creds","hashes","cves","vulns","shares","shells","loot","notes"]) {
+    state[k] = {};
+    localStorage.removeItem("thm-" + k);
+  }
+  renderAll();
+  renderLeft();
+  clearDetail();
+});
+
+// ---------- STATUS HEARTBEAT ----------
 setInterval(() => {
   if (Date.now() - state.lastFresh > 4000) {
     $("#status").textContent = "standby";
@@ -782,35 +1514,17 @@ setInterval(() => {
   }
 }, 1000);
 
-$("#clear").addEventListener("click", () => {
-  // telemetry
-  stream.innerHTML = "";
-  state.count = 0;
-  $("#count").textContent = "0 lines";
-  // nmap
-  state.ports = {};
-  localStorage.removeItem("thm-ports");
-  updatePortBadge();
-  if (state.view === "nmap") renderPorts();
-  // directories
-  state.dirs = {};
-  localStorage.removeItem("thm-dirs");
-  updateDirsBadge();
-  if (state.view === "dirs") renderDirs();
-  // credentials
-  state.creds = {};
-  localStorage.removeItem("thm-creds");
-  updateCredBadge();
-  if (state.view === "creds") renderCreds();
-});
-
-updateCredBadge();
-updatePortBadge();
-updateDirsBadge();
-pushLine("OPS", "HUD initialized — awaiting telemetry.");
+// ---------- BOOT ----------
+refreshBadges();
+renderLeft();
+renderAll();
+pushLine("OPS", "HUD initialized — awaiting telemetry & loot streams.");
 pollSessions();
+pollLootFiles();
 setInterval(pollSessions, 3000);
 setInterval(pollEvents, 400);
+setInterval(pollLootFiles, 4000);
+setInterval(pollLootTails, 500);
 </script>
 </body>
 </html>
